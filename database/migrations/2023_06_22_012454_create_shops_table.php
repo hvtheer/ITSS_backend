@@ -13,15 +13,16 @@ return new class extends Migration
     {
         Schema::create('shops', function (Blueprint $table) {
             $table->bigIncrements('id');
-            $table->integer('user_id');
+            $table->unsignedBigInteger('user_id');
             $table->string('shop_name');
             $table->string('description');
             $table->string('shop_address');
             $table->string('shop_numberPhone');
             $table->text('shop_logo');
             $table->string('status');
-
             $table->timestamps();
+            $table->foreign('user_id')->references('id')->on('users');
+
         });
     }
 

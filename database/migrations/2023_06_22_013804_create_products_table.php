@@ -17,10 +17,15 @@ return new class extends Migration
             $table->string('description');
             $table->float('price');
             $table->integer('quantity');
-            $table->integer('category_id');
-            $table->integer('shop_id');
+            $table->unsignedBigInteger('category_id')->nullable();
+            $table->unsignedBigInteger('shop_id')->nullable();
             $table->integer('quantity_sold');
             $table->timestamps();
+
+            $table->foreign('category_id')->references('id')->on('categorys');
+            $table->foreign('shop_id')->references('id')->on('shops');
+
+
         });
     }
 

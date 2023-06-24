@@ -17,6 +17,9 @@ return new class extends Migration
             $table->string('atribute');
             $table->string('value');
             $table->timestamps();
+
+            $table->foreign('product_id')->references('id')->on('products');
+
         });
     }
 

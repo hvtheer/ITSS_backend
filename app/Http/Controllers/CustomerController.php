@@ -12,7 +12,7 @@ class CustomerController extends Controller
      */
     public function index()
     {
-        //
+        return Customer::all();
     }
 
     /**
@@ -20,7 +20,7 @@ class CustomerController extends Controller
      */
     public function create()
     {
-        //
+        
     }
 
     /**
@@ -28,15 +28,27 @@ class CustomerController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $request->validate([
+            'user_id' =>'required',
+            'customer_name' =>'required',
+            'customer_address' =>'required',
+            'customer_numberPhone' =>'required',
+            'is_login' =>'required',
+                     
+        ]);
+
+        $customer = Customer::create($request->all());
+
+        return $customer;
     }
 
     /**
      * Display the specified resource.
      */
-    public function show(Customer $customer)
+    public function show($id)
     {
-        //
+        $customer = Customer::find($id);
+        return $customer;
     }
 
     /**
@@ -52,7 +64,9 @@ class CustomerController extends Controller
      */
     public function update(Request $request, Customer $customer)
     {
-        //
+        $customer = Customer::find($id);
+        $customer->update($request->all());
+        return $customer;
     }
 
     /**
@@ -60,6 +74,6 @@ class CustomerController extends Controller
      */
     public function destroy(Customer $customer)
     {
-        //
+        $customer->delete();
     }
 }

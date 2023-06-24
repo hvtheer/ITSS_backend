@@ -15,10 +15,13 @@ return new class extends Migration
             $table->bigIncrements('id');
             $table->string('key');
             $table->string('type');
-            $table->integer('created_by');
+            $table->unsignedBigInteger('created_by');
             $table->date('start_at');
             $table->date('end_at');
             $table->timestamps();
+
+            $table->foreign('created_by')->references('id')->on('users');
+
         });
     }
 
