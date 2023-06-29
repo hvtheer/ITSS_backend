@@ -12,7 +12,20 @@ class CustomerController extends Controller
      */
     public function index()
     {
-        return Customer::all();
+        $customers =  Customer::all();
+        if ($customers){
+            // return $customers;
+            return [
+                'success' => 'True',
+                'data' =>   $customers
+            ];
+        }
+        else {
+            return [
+                'success' => 'False',
+                'message' => 'Get customer failed'
+            ];
+        };
     }
 
     /**
@@ -37,9 +50,21 @@ class CustomerController extends Controller
                      
         ]);
 
-        $customer = Customer::create($request->all());
-
-        return $customer;
+        $customers = Customer::create($request->all());
+        if ($customers){
+            // return $customers;
+            return [
+                'success' => 'True',
+                'message' => 'Create Success',
+                'data' =>   $customers
+            ];
+        }
+        else {
+            return [
+                'success' => 'False',
+                'message' => 'Create failed',
+            ];
+        };
     }
 
     /**
@@ -47,8 +72,20 @@ class CustomerController extends Controller
      */
     public function show($id)
     {
-        $customer = Customer::find($id);
-        return $customer;
+        $customers = Customer::find($id);
+        if ($customers){
+            // return $customers;
+            return [
+                'success' => 'True',
+                'data' =>   $customers
+            ];
+        }
+        else {
+            return [
+                'success' => 'False',
+                'message' => 'Get customer failed'
+            ];
+        };
     }
 
     /**
@@ -62,11 +99,24 @@ class CustomerController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Customer $customer)
+    public function update(Request $request, $id)
     {
-        $customer = Customer::find($id);
-        $customer->update($request->all());
-        return $customer;
+        $customers = Customer::find($id);
+        $customers->update($request->all());
+        if ($customers){
+            // return $customers;
+            return [
+                'success' => 'True',
+                'message' => 'Update Success',
+                'data' =>   $customers
+            ];
+        }
+        else {
+            return [
+                'success' => 'False',
+                'message' => 'Update failed'
+            ];
+        };
     }
 
     /**
@@ -75,5 +125,8 @@ class CustomerController extends Controller
     public function destroy(Customer $customer)
     {
         $customer->delete();
+        return[
+            'message' => 'Success Delete'
+        ];
     }
 }

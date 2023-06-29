@@ -12,7 +12,21 @@ class DiscountController extends Controller
      */
     public function index()
     {
-        return Discount::all();
+        // return Discount::all();
+        $discounts =  Discount::all();
+        if ($discounts){
+            // return $customers;
+            return [
+                'success' => 'True',
+                'data' =>   $discounts
+            ];
+        }
+        else {
+            return [
+                'success' => 'False',
+                'message' => 'Get discount failed'
+            ];
+        };
     }
 
     /**
@@ -39,7 +53,20 @@ class DiscountController extends Controller
 
         $discount = Discount::create($request->all());
 
-        return $discount;
+        if ($discount){
+            // return $customers;
+            return [
+                'success' => 'True',
+                'message' => 'Create discount success',
+                'data' =>   $discount
+            ];
+        }
+        else {
+            return [
+                'success' => 'False',
+                'message' => 'Create discount failed'
+            ];
+        };
     }
 
     /**
@@ -47,8 +74,20 @@ class DiscountController extends Controller
      */
     public function show(string $id)
     {
-        $discount = Discount::find($id);
-        return $discount;
+        $discounts = Discount::find($id);
+        if ($discounts){
+            // return $customers;
+            return [
+                'success' => 'True',
+                'data' =>   $discounts
+            ];
+        }
+        else {
+            return [
+                'success' => 'False',
+                'message' => 'Get discount failed'
+            ];
+        };
     }
 
     /**
@@ -66,7 +105,20 @@ class DiscountController extends Controller
     {
         $discount = Discount::find($id);
         $discount->update($request->all());
-        return $discount;
+        if ($discount){
+            // return $customers;
+            return [
+                'success' => 'True',
+                'message' => 'Update discount success',
+                'data' =>   $discount
+            ];
+        }
+        else {
+            return [
+                'success' => 'False',
+                'message' => 'Update discount failed'
+            ];
+        };
     }
 
     /**

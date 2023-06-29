@@ -20,7 +20,19 @@ class GetShopProductController extends Controller
             ->select('shops.id','shops.shop_name as Shop_name' ,'products.name as product_name','attributes.attribute')
             ->get();
 
-        return $products;
+            if ($products){
+                // return $customers;
+                return [
+                    'success' => 'True',
+                    'data' =>   $products
+                ];
+            }
+            else {
+                return [
+                    'success' => 'False',
+                    'message' => 'Get products failed'
+                ];
+            };
     }
 
     /**
@@ -54,7 +66,19 @@ class GetShopProductController extends Controller
         
         
         
-        return $products;
+            if ($products){
+                // return $customers;
+                return [
+                    'success' => 'True',
+                    'data' =>   $products
+                ];
+            }
+            else {
+                return [
+                    'success' => 'False',
+                    'message' => 'Get products failed'
+                ];
+            };
     }
 
     /**

@@ -12,7 +12,21 @@ class ProductController extends Controller
      */
     public function index()
     {
-        return Product::all();
+        // return Product::all();
+        $products =  Product::all();
+        if ($products){
+            // return $customers;
+            return [
+                'success' => 'True',
+                'data' =>   $products
+            ];
+        }
+        else {
+            return [
+                'success' => 'False',
+                'message' => 'Get product failed'
+            ];
+        };
     }
 
     /**
@@ -41,7 +55,20 @@ class ProductController extends Controller
 
         $product = Product::create($request->all());
 
-        return $product;
+        if ($product){
+            // return $customers;
+            return [
+                'success' => 'True',
+                'message' => 'Create product success',
+                'data' =>   $product
+            ];
+        }
+        else {
+            return [
+                'success' => 'False',
+                'message' => 'Create product failed'
+            ];
+        };
     }
 
     /**
@@ -49,8 +76,20 @@ class ProductController extends Controller
      */
     public function show(string $id)
     {
-        $product = Product::find($id);
-        return $product;
+        $products = Product::find($id);
+        if ($products){
+            // return $customers;
+            return [
+                'success' => 'True',
+                'data' =>   $products
+            ];
+        }
+        else {
+            return [
+                'success' => 'False',
+                'message' => 'Get product failed'
+            ];
+        };
     }
 
     /**
@@ -68,7 +107,20 @@ class ProductController extends Controller
     {
         $product = Product::find($id);
         $product->update($request->all());
-        return $product;
+        if ($product){
+            // return $customers;
+            return [
+                'success' => 'True',
+                'message' => 'Update product success',
+                'data' =>   $product
+            ];
+        }
+        else {
+            return [
+                'success' => 'False',
+                'message' => 'Update product failed'
+            ];
+        };
     }
 
     /**
@@ -78,5 +130,8 @@ class ProductController extends Controller
     {
         $product = Product::find($id);
         $product->delete();
+        return[
+            'message' => 'Success Delete'
+        ];
     }
 }

@@ -20,7 +20,19 @@ class GetCategoryProduct extends Controller
             ->select('products.id','products.name as product_name','attributes.attribute' ,'categorys.name as category_name' )
             ->get();
 
-        return $products;
+            if ($products){
+                // return $customers;
+                return [
+                    'success' => 'True',
+                    'data' =>   $products
+                ];
+            }
+            else {
+                return [
+                    'success' => 'False',
+                    'message' => 'Get products failed'
+                ];
+            };
     }
 
     /**
@@ -51,7 +63,19 @@ class GetCategoryProduct extends Controller
             ->where('categorys.id','=',$id)
             ->get();
 
-        return $products;
+            if ($products){
+                // return $customers;
+                return [
+                    'success' => 'True',
+                    'data' =>   $products
+                ];
+            }
+            else {
+                return [
+                    'success' => 'False',
+                    'message' => 'Get products failed'
+                ];
+            };
     }
 
     /**

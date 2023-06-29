@@ -12,7 +12,21 @@ class CategoryController extends Controller
      */
     public function index()
     {
-        return Category::all();
+        // return Category::all();
+        $categorys =  Category::all();
+        if ($categorys){
+            // return $customers;
+            return [
+                'success' => 'True',
+                'data' =>   $categorys
+            ];
+        }
+        else {
+            return [
+                'success' => 'False',
+                'message' => 'Get category failed'
+            ];
+        };
     }
 
     /**
@@ -35,7 +49,20 @@ class CategoryController extends Controller
 
         $category = Category::create($request->all());
 
-        return $category;
+        if ($category){
+            // return $customers;
+            return [
+                'success' => 'True',
+                'message' => 'Create category success',
+                'data' =>   $category
+            ];
+        }
+        else {
+            return [
+                'success' => 'False',
+                'message' => 'Create category failed'
+            ];
+        };
     }
 
     /**
@@ -43,8 +70,20 @@ class CategoryController extends Controller
      */
     public function show(string $id)
     {
-        $category = Category::find($id);
-        return $category;
+        $categorys = Category::find($id);
+        if ($categorys){
+            // return $customers;
+            return [
+                'success' => 'True',
+                'data' =>   $categorys
+            ];
+        }
+        else {
+            return [
+                'success' => 'False',
+                'message' => 'Get category failed'
+            ];
+        };
     }
 
     /**
@@ -62,7 +101,20 @@ class CategoryController extends Controller
     {
         $category = Category::find($id);
         $category->update($request->all());
-        return $category;
+        if ($category){
+            // return $customers;
+            return [
+                'success' => 'True',
+                'message' => 'Update category success',
+                'data' =>   $category
+            ];
+        }
+        else {
+            return [
+                'success' => 'False',
+                'message' => 'Update category failed'
+            ];
+        };
     }
 
     /**
@@ -72,5 +124,8 @@ class CategoryController extends Controller
     {
         $category = Category::find($id);
         $category->delete();
+        return[
+            'message' => 'Success Delete'
+        ];
     }
 }

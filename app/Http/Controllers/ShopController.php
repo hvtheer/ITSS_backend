@@ -12,7 +12,21 @@ class ShopController extends Controller
      */
     public function index()
     {
-        return Shop::all();
+        // return Shop::all();
+        $shops =  Shop::all();
+        if ($shops){
+            // return $customers;
+            return [
+                'success' => 'True',
+                'data' =>   $shops
+            ];
+        }
+        else {
+            return [
+                'success' => 'False',
+                'message' => 'Get shop failed'
+            ];
+        };
     }
 
     /**
@@ -41,7 +55,20 @@ class ShopController extends Controller
 
         $shop = Shop::create($request->all());
 
-        return $shop;
+        if ($shop){
+            // return $customers;
+            return [
+                'success' => 'True',
+                'message' => 'Success create',
+                'data' =>   $shop
+            ];
+        }
+        else {
+            return [
+                'success' => 'False',
+                'message' => 'Create failed'
+            ];
+        };
     }
 
     /**
@@ -49,8 +76,20 @@ class ShopController extends Controller
      */
     public function show(string $id)
     {
-        $shop = Shop::find($id);
-        return $shop;
+        $shops = Shop::find($id);
+        if ($shops){
+            // return $customers;
+            return [
+                'success' => 'True',
+                'data' =>   $shops
+            ];
+        }
+        else {
+            return [
+                'success' => 'False',
+                'message' => 'Get shop failed'
+            ];
+        };
     }
 
     /**
@@ -68,7 +107,20 @@ class ShopController extends Controller
     {
         $shop = Shop::find($id);
         $shop->update($request->all());
-        return $shop;
+        if ($shop){
+            // return $customers;
+            return [
+                'success' => 'True',
+                'message' => 'Success update',
+                'data' =>   $shop
+            ];
+        }
+        else {
+            return [
+                'success' => 'False',
+                'message' => 'Update failed'
+            ];
+        };
     }
 
     /**
@@ -78,5 +130,8 @@ class ShopController extends Controller
     {
         $shop = Shop::find($id);
         $shop->delete();
+        return[
+            'message' => 'Success Delete'
+        ];
     }
 }
