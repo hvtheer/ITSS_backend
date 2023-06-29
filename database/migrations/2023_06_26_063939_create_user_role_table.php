@@ -11,18 +11,19 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('customers', function (Blueprint $table) {
-            $table->bigIncrements('id');
-            $table->unsignedInteger('user_id');
-            $table->string('customer_name');
-            $table->string('customer_address');
-            $table->string('customer_numberPhone');
-            $table->boolean('is_login');
+        Schema::create('user_role', function (Blueprint $table) {
+
+
+            $table->id();
+            $table->integer('user_id')->unsigned();
+            $table->integer('role_id')->unsigned();
             $table->timestamps();
 
             $table->foreign('user_id')->references('id')->on('users');
-
+            $table->foreign('role_id')->references('id')->on('roles');
+            $table->unique(['user_id','role_id'] );
         });
+
     }
 
     /**
@@ -30,6 +31,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('customers');
+        Schema::dropIfExists('user_role');
     }
 };

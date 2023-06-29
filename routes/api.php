@@ -17,14 +17,27 @@ use Illuminate\Support\Facades\Route;
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
+Auth::routes();
 
-Route::resource('user','App\Http\Controllers\UserController');
-Route::resource('customer','App\Http\Controllers\CustomerController');
-Route::resource('shop','App\Http\Controllers\ShopController');
-Route::resource('product','App\Http\Controllers\ProductController');
-Route::resource('discount','App\Http\Controllers\DiscountController');
-Route::resource('category','App\Http\Controllers\CategoryController');
 
+Route::resource('users','App\Http\Controllers\UserController');
+Route::resource('customers','App\Http\Controllers\CustomerController');
+Route::resource('shops','App\Http\Controllers\ShopController');
+Route::resource('products','App\Http\Controllers\ProductController');
+Route::resource('discounts','App\Http\Controllers\DiscountController');
+Route::resource('categorys','App\Http\Controllers\CategoryController');
+Route::resource('getcategory','App\Http\Controllers\GetCategoryProduct');
+Route::resource('getshoppro','App\Http\Controllers\GetShopProductController');
+
+
+
+Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
+
+Route::prefix('')->middleware(['auth','isAdmin'])->group(function(){
+    
+    Route::get('/hello', [App\Http\Controllers\HomeController::class, 'index'])->name('hello');
+
+});
 
 
 

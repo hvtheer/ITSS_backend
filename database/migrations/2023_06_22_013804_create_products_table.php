@@ -17,8 +17,8 @@ return new class extends Migration
             $table->string('description');
             $table->float('price');
             $table->integer('quantity');
-            $table->unsignedBigInteger('category_id')->nullable();
-            $table->unsignedBigInteger('shop_id')->nullable();
+            $table->unsignedInteger('category_id');
+            $table->unsignedBigInteger('shop_id');
             $table->integer('quantity_sold');
             $table->timestamps();
 

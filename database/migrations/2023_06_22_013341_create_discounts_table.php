@@ -15,7 +15,7 @@ return new class extends Migration
             $table->bigIncrements('id');
             $table->string('key');
             $table->string('type');
-            $table->unsignedBigInteger('created_by');
+            $table->unsignedInteger('created_by');
             $table->date('start_at');
             $table->date('end_at');
             $table->timestamps();

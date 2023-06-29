@@ -11,10 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('atributes', function (Blueprint $table) {
+        Schema::create('attributes', function (Blueprint $table) {
             $table->bigIncrements('id');
-            $table->integer('product_id');
-            $table->string('atribute');
+            $table->unsignedBigInteger('product_id');
+            $table->string('attribute');
             $table->string('value');
             $table->timestamps();
 
