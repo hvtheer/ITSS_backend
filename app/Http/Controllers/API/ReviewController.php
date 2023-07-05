@@ -10,46 +10,71 @@ class ReviewController extends Controller
 {
     public function index()
     {
-        $reviews = Review::all();
-        return response()->json($reviews);
+        try {
+            $reviews = Review::all();
+
+            if ($reviews->isEmpty()) {
+                return response()->json(['success' => false, 'message' => 'No reviews found']);
+            }
+
+            return response()->json(['success' => true, 'data' => $reviews]);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()]);
+        }
     }
 
     public function store(Request $request)
     {
-        $validatedData = $request->validate([
-            'customer_id' => 'required|exists:customers,id',
-            'product_id' => 'required|exists:products,id',
-            'order_detail_id' => 'nullable|exists:order_details,id',
-            'content' => 'required',
-            'star' => 'required|numeric|min:1|max:5',
-        ]);
+        try {
+            $validatedData = $request->validate([
+                'product_id' => 'required|exists:products,id',
+                'order_item_id' => 'required|exists:orders,id',
+                'customer_id' => 'required|exists:customers,id',
+                'rating' => 'required|integer|min:1|max:5',
+                'review_text' => 'required',
+            ]);
 
-        $review = Review::create($validatedData);
-        return response()->json($review, 201);
+            $review = Review::create($validatedData);
+            return response()->json(['success' => true, 'data' => $review], 201);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()]);
+        }
     }
 
     public function show(Review $review)
     {
-        return response()->json($review);
+        try {
+            return response()->json(['success' => true, 'data' => $review]);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()]);
+        }
     }
 
     public function update(Request $request, Review $review)
     {
-        $validatedData = $request->validate([
-            'customer_id' => 'required|exists:customers,id',
-            'product_id' => 'required|exists:products,id',
-            'order_detail_id' => 'nullable|exists:order_details,id',
-            'content' => 'required',
-            'star' => 'required|numeric|min:1|max:5',
-        ]);
+        try {
+            $validatedData = $request->validate([
+                'product_id' => 'sometimes|required|exists:products,id',
+                'order_item_id' => 'sometimes|required|exists:orders,id',
+                'customer_id' => 'sometimes|required|exists:customers,id',
+                'rating' => 'sometimes|required|integer|min:1|max:5',
+                'review_text' => 'sometimes|required',
+            ]);
 
-        $review->update($validatedData);
-        return response()->json($review);
+            $review->update($validatedData);
+            return response()->json(['success' => true, 'data' => $review]);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()]);
+        }
     }
 
     public function destroy(Review $review)
     {
-        $review->delete();
-        return response()->json(null, 204);
+        try {
+            $review->delete();
+            return response()->json(['success' => true], 204);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()]);
+        }
     }
 }

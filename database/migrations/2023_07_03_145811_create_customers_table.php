@@ -10,14 +10,19 @@ class CreateCustomersTable extends Migration
     {
         Schema::create('customers', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('user_id')->nullable();
-            $table->string('name');
+            $table->unsignedBigInteger('user_id')->nullable()->unique();
+            $table->string('first_name');
+            $table->string('last_name');
+            $table->date('date_of_birth');
+            $table->string('gender');
+            $table->string('email');
+            $table->string('phone_number');
             $table->string('address');
-            $table->string('phone');
-            $table->boolean('is_login')->default(false);
+            $table->string('profile_picture_url');
+            $table->boolean('is_verified')->default(false);
             $table->timestamps();
 
-            $table->foreign('user_id')->references('id')->on('users')->onDelete('set null');
+            $table->foreign('user_id')->references('id')->on('users');
         });
     }
 

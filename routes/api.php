@@ -14,13 +14,42 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-// Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
-//     return $request->user();
-// });
+//　Routes accessible to authentication
+Route::post('/register', [App\Http\Controllers\Auth\RegisterController::class, 'register']);
+Route::post('/login', [App\Http\Controllers\Auth\LoginController::class, 'login'])->name('login');
 
-Route::resource('/user','App\Http\Controllers\API\UserController');
-Route::resource('/customer','App\Http\Controllers\API\CustomerController');
-Route::resource('/seller','App\Http\Controllers\API\SellerController');
-Route::resource('/category','App\Http\Controllers\API\CategoryController');
-Route::resource('/order','App\Http\Controllers\API\OrdersController');
+// Routes accessible to all authenticated users
+Route::middleware('auth:api')->group(function () {
 
+    // Routes accessible to admins
+    Route::middleware('role:admin')->prefix('v1')->group(function () {
+        Route::resource('/users','App\Http\Controllers\API\UserController');
+        Route::resource('/categories','App\Http\Controllers\API\CategoryController');
+        Route::resource('/coupons','App\Http\Controllers\API\CouponController');
+        Route::resource('/customers','App\Http\Controllers\API\CustomerController');
+        Route::resource('/orders','App\Http\Controllers\API\OrderController');
+        Route::resource('/order-items','App\Http\Controllers\API\OrderItemController');
+        Route::resource('/payments','App\Http\Controllers\API\PaymentController');
+        Route::resource('/products','App\Http\Controllers\API\ProductController');
+        Route::resource('/reviews','App\Http\Controllers\API\ReviewController');
+        Route::resource('/shippings','App\Http\Controllers\API\ShippingController');
+        Route::resource('/shops','App\Http\Controllers\API\ShopController');
+        // Route::resource('/users','App\Http\Controllers\API\UserController');
+        // Route::resource('/users','App\Http\Controllers\API\UserController');
+        // Route::resource('/users','App\Http\Controllers\API\UserController');
+        // Route::resource('/users','App\Http\Controllers\API\UserController');
+        // Route::resource('/users','App\Http\Controllers\API\UserController');
+        // Route::resource('/users','App\Http\Controllers\API\UserController');
+        // Route::resource('/users','App\Http\Controllers\API\UserController');
+    });
+
+    // Routes accessible to sellers
+    Route::middleware('role:seller')->group(function () {
+        // Seller-only routes
+    });
+
+    // Routes accessible to customers
+    Route::middleware('role:customer')->group(function () {
+        // Customer-only routes
+    });
+});

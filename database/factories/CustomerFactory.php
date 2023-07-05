@@ -2,8 +2,8 @@
 
 namespace Database\Factories;
 
-use App\Models\User;
 use App\Models\Customer;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 class CustomerFactory extends Factory
@@ -12,15 +12,18 @@ class CustomerFactory extends Factory
 
     public function definition()
     {
-        $user = User::inRandomOrder()->first();
-
+        $user_id = User::inRandomOrder()->first()->id;
         return [
-            'user_id' => rand(0, 1) ? $user->id : null,
-            'name' => $this->faker->name,
+            'user_id' => null,
+            'first_name' => $this->faker->firstName,
+            'last_name' => $this->faker->lastName,
+            'date_of_birth' => $this->faker->date(),
+            'gender' => $this->faker->randomElement(['Male', 'Female']),
+            'email' => $this->faker->email,
+            'phone_number' => $this->faker->phoneNumber,
             'address' => $this->faker->address,
-            'phone' => $this->faker->phoneNumber,
-            'is_login' => $user ? true : false,
+            'profile_picture_url' => $this->faker->imageUrl(),
+            'is_verified' => $this->faker->boolean,
         ];
     }
 }
-

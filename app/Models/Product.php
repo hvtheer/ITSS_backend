@@ -10,22 +10,22 @@ class Product extends Model
     use HasFactory;
 
     protected $fillable = [
+        'slug',
+        'shop_id',
         'name',
         'description',
         'price',
-        'quantity',
+        'stock_quantity',
         'category_id',
-        'seller_id',
-        'sold_qty',
     ];
+
+    public function shop()
+    {
+        return $this->belongsTo(Shop::class);
+    }
 
     public function category()
     {
         return $this->belongsTo(Category::class);
-    }
-
-    public function seller()
-    {
-        return $this->belongsTo(Seller::class);
     }
 }

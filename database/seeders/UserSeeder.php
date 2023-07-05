@@ -18,7 +18,7 @@ class UserSeeder extends Seeder
         ]);
 
         // Create some user and seller users
-        User::factory()->count(5)->create();
+        User::factory()->count(8)->create();
 
         // Create one more custom user with a specific role
         User::create([

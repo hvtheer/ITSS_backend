@@ -10,50 +10,75 @@ class ProductController extends Controller
 {
     public function index()
     {
-        $products = Product::all();
-        return response()->json($products);
+        try {
+            $products = Product::all();
+
+            if ($products->isEmpty()) {
+                return response()->json(['success' => false, 'message' => 'No products found']);
+            }
+
+            return response()->json(['success' => true, 'data' => $products]);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()]);
+        }
     }
 
     public function store(Request $request)
     {
-        $validatedData = $request->validate([
-            'name' => 'required',
-            'description' => 'nullable',
-            'price' => 'required',
-            'quantity' => 'required',
-            'category_id' => 'required|exists:categories,id',
-            'seller_id' => 'required|exists:sellers,id',
-            'sold_qty' => 'nullable',
-        ]);
+        try {
+            $validatedData = $request->validate([
+                'slug' => 'required|unique:products',
+                'shop_id' => 'required|exists:shops,id',
+                'name' => 'required',
+                'description' => 'required',
+                'price' => 'required|numeric|min:0',
+                'stock_quantity' => 'required|integer|min:0',
+                'category_id' => 'required|exists:categories,id',
+            ]);
 
-        $product = Product::create($validatedData);
-        return response()->json($product, 201);
+            $product = Product::create($validatedData);
+            return response()->json(['success' => true, 'data' => $product], 201);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()]);
+        }
     }
 
     public function show(Product $product)
     {
-        return response()->json($product);
+        try {
+            return response()->json(['success' => true, 'data' => $product]);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()]);
+        }
     }
 
     public function update(Request $request, Product $product)
     {
-        $validatedData = $request->validate([
-            'name' => 'required',
-            'description' => 'nullable',
-            'price' => 'required',
-            'quantity' => 'required',
-            'category_id' => 'required|exists:categories,id',
-            'seller_id' => 'required|exists:sellers,id',
-            'sold_qty' => 'nullable',
-        ]);
+        try {
+            $validatedData = $request->validate([
+                'slug' => 'required|unique:products,slug,' . $product->id,
+                'shop_id' => 'required|exists:shops,id',
+                'name' => 'required',
+                'description' => 'required',
+                'price' => 'required|numeric|min:0',
+                'stock_quantity' => 'required|integer|min:0',
+                'category_id' => 'required|exists:categories,id',
+            ]);
 
-        $product->update($validatedData);
-        return response()->json($product);
+            $product->update($validatedData);
+            return response()->json(['success' => true, 'data' => $product]);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()]);
+        }
     }
 
     public function destroy(Product $product)
     {
-        $product->delete();
-        return response()->json(null, 204);
+        try {
+            $product->delete();
+            return response()->json(['success' => true], 204);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()]);
+        }
     }
 }

@@ -10,44 +10,64 @@ class UserController extends Controller
 {
     public function index()
     {
-        $users = User::all();
-        return response()->json($users);
+        try {
+            $users = User::all();
+            return response()->json(['success' => true, 'data' => $users]);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()]);
+        }
     }
 
     public function store(Request $request)
     {
-        $validatedData = $request->validate([
-            'username' => 'required|unique:users',
-            'email' => 'required|email|unique:users',
-            'password' => 'required',
-            'role' => 'required|in:admin,user,seller',
-        ]);
+        try {
+            $validatedData = $request->validate([
+                'username' => 'required|unique:users',
+                'email' => 'required|email|unique:users',
+                'password' => 'required',
+                'role' => 'required|in:admin,user,seller',
+            ]);
 
-        $user = User::create($validatedData);
-        return response()->json($user, 201);
+            $user = User::create($validatedData);
+            return response()->json(['success' => true, 'data' => $user], 201);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()]);
+        }
     }
 
     public function show(User $user)
     {
-        return response()->json($user);
+        try {
+            return response()->json(['success' => true, 'data' => $user]);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()]);
+        }
     }
 
     public function update(Request $request, User $user)
     {
-        $validatedData = $request->validate([
-            'username' => 'required|unique:users,username,' . $user->id,
-            'email' => 'required|email|unique:users,email,' . $user->id,
-            'password' => 'required',
-            'role' => 'required|in:admin,user,seller',
-        ]);
+        try {
+            $validatedData = $request->validate([
+                'username' => 'required|unique:users,username,' . $user->id,
+                'email' => 'required|email|unique:users,email,' . $user->id,
+                'password' => 'required',
+                'role' => 'required|in:admin,user,seller',
+            ]);
 
-        $user->update($validatedData);
-        return response()->json($user);
+            $user->update($validatedData);
+            return response()->json(['success' => true, 'data' => $user]);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()]);
+        }
     }
 
     public function destroy(User $user)
     {
-        $user->delete();
-        return response()->json(null, 204);
+        try {
+            $user->delete();
+            return response()->json(['success' => true], 204);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()]);
+        }
     }
 }

@@ -11,12 +11,18 @@ class Customer extends Model
 
     protected $fillable = [
         'user_id',
-        'name',
+        'first_name',
+        'last_name',
+        'date_of_birth',
+        'gender',
+        'email',
+        'phone_number',
         'address',
-        'phone',
-        'is_login',
+        'profile_picture_url',
+        'is_verified',
     ];
 
+    // Define the relationship with the User model
     public function user()
     {
         return $this->belongsTo(User::class);
