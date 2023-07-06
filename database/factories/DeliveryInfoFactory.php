@@ -12,13 +12,11 @@ class DeliveryInfoFactory extends Factory
     public function definition()
     {
         return [
-            'name' => $this->faker->name,
-            'phone' => $this->faker->phoneNumber,
-            'order_id' => \App\Models\Order::inRandomOrder()->first()->id,
-            'note' => $this->faker->sentence,
+            'receiver_name' => $this->faker->name,
+            'numberPhone' => $this->faker->numerify('##########'),
+            'note' => $this->faker->text(200),
             'address' => $this->faker->address,
-            'delivery_fee' => $this->faker->randomFloat(2, 10, 100),
-            'total' => '0'
+            'shipping_fee' => $this->faker->randomFloat(2, 0, 100),
         ];
     }
 }

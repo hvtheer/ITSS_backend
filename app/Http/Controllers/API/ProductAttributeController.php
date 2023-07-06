@@ -10,42 +10,67 @@ class ProductAttributeController extends Controller
 {
     public function index()
     {
-        $productAttributes = ProductAttribute::all();
-        return response()->json($productAttributes);
+        try {
+            $productAttributes = ProductAttribute::all();
+
+            if ($productAttributes->isEmpty()) {
+                return response()->json(['success' => false, 'message' => 'No product attributes found']);
+            }
+
+            return response()->json(['success' => true, 'data' => $productAttributes]);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()]);
+        }
     }
 
     public function store(Request $request)
     {
-        $validatedData = $request->validate([
-            'product_id' => 'required|exists:products,id',
-            'attribute' => 'required',
-            'value' => 'required',
-        ]);
+        try {
+            $validatedData = $request->validate([
+                'product_id' => 'required|exists:products,id',
+                'name' => 'required',
+                'value' => 'required',
+            ]);
 
-        $productAttribute = ProductAttribute::create($validatedData);
-        return response()->json($productAttribute, 201);
+            $productAttribute = ProductAttribute::create($validatedData);
+            return response()->json(['success' => true, 'data' => $productAttribute], 201);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()]);
+        }
     }
 
     public function show(ProductAttribute $productAttribute)
     {
-        return response()->json($productAttribute);
+        try {
+            return response()->json(['success' => true, 'data' => $productAttribute]);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()]);
+        }
     }
 
     public function update(Request $request, ProductAttribute $productAttribute)
     {
-        $validatedData = $request->validate([
-            'product_id' => 'required|exists:products,id',
-            'attribute' => 'required',
-            'value' => 'required',
-        ]);
+        try {
+            $validatedData = $request->validate([
+                'product_id' => 'required|exists:products,id',
+                'name' => 'required',
+                'value' => 'required',
+            ]);
 
-        $productAttribute->update($validatedData);
-        return response()->json($productAttribute);
+            $productAttribute->update($validatedData);
+            return response()->json(['success' => true, 'data' => $productAttribute]);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()]);
+        }
     }
 
     public function destroy(ProductAttribute $productAttribute)
     {
-        $productAttribute->delete();
-        return response()->json(null, 204);
+        try {
+            $productAttribute->delete();
+            return response()->json(['success' => true], 204);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()]);
+        }
     }
 }

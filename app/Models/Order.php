@@ -11,15 +11,10 @@ class Order extends Model
 
     protected $fillable = [
         'customer_id',
-        'seller_id',
-        'total',
-        'discount_id',
-        'subtotal',
-        'payment_method',
-        'payment_status',
-        'status',
+        'shop_id',
+        'delivery_info_id',
+        'order_status',
         'note',
-        'total_qty',
     ];
 
     public function customer()
@@ -27,13 +22,13 @@ class Order extends Model
         return $this->belongsTo(Customer::class);
     }
 
-    public function seller()
+    public function shop()
     {
-        return $this->belongsTo(Seller::class);
+        return $this->belongsTo(Shop::class);
     }
 
-    public function discount()
+    public function deliveryInfo()
     {
-        return $this->belongsTo(Discount::class);
+        return $this->belongsTo(DeliveryInfo::class);
     }
 }

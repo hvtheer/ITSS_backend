@@ -2,15 +2,13 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Seeder;
 use App\Models\DeliveryInfo;
+use Illuminate\Database\Seeder;
 
 class DeliveryInfoSeeder extends Seeder
 {
     public function run()
     {
-        DeliveryInfo::factory()
-            ->count(10)
-            ->create();
+        DeliveryInfo::factory()->count(10)->create();
     }
 }

@@ -10,55 +10,71 @@ class OrderController extends Controller
 {
     public function index()
     {
-        $orders = Order::all();
-        return response()->json($orders);
+        try {
+            $orders = Order::all();
+
+            if ($orders->isEmpty()) {
+                return response()->json(['success' => false, 'message' => 'No orders found']);
+            }
+
+            return response()->json(['success' => true, 'data' => $orders]);
+        } catch (\Exception $e) {
+           return response()->json(['success' => false, 'message' => $e->getMessage()]);
+        }
     }
 
     public function store(Request $request)
     {
-        $request->validate([
-            'customer_id' => 'required',
-            'seller_id' => 'required',
-            'total' => 'required',
-            'subtotal' => 'required',
-            'payment_method' => 'required',
-            'payment_status' => 'required',
-            'status' => 'required',
-            'total_qty' => 'required',
-        ]);
+        try {
+            $validatedData = $request->validate([
+                'customer_id' => 'required|exists:customers,id',
+                'shop_id' => 'required|exists:shops,id',
+                'delivery_info_id' => 'nullable|exists:delivery_infos,id',
+                'order_status' => 'required|in:pending,accepted,not accepted',
+                'note' => 'nullable',
+            ]);
 
-        $order = Order::create($request->all());
-
-        return response()->json($order, 201);
+            $order = Order::create($validatedData);
+            return response()->json(['success' => true, 'data' => $order], 201);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()]);
+        }
     }
 
     public function show(Order $order)
     {
-        return response()->json($order);
+        try {
+            return response()->json(['success' => true, 'data' => $order]);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()]);
+        }
     }
 
     public function update(Request $request, Order $order)
     {
-        $request->validate([
-            'customer_id' => 'required',
-            'seller_id' => 'required',
-            'total' => 'required',
-            'subtotal' => 'required',
-            'payment_method' => 'required',
-            'payment_status' => 'required',
-            'status' => 'required',
-            'total_qty' => 'required',
-        ]);
+        try {
+            $validatedData = $request->validate([
+                'customer_id' => 'required|exists:customers,id',
+                'shop_id' => 'required|exists:shops,id',
+                'delivery_info_id' => 'nullable|exists:delivery_infos,id',
+                'order_status' => 'required|in:pending,accepted,not accepted',
+                'note' => 'nullable',
+            ]);
 
-        $order->update($request->all());
-
-        return response()->json($order);
+            $order->update($validatedData);
+            return response()->json(['success' => true, 'data' => $order]);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()]);
+        }
     }
 
     public function destroy(Order $order)
     {
-        $order->delete();
-
-        return response()->json(null, 204);
+        try {
+            $order->delete();
+            return response()->json(['success' => true], 204);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()]);
+        }
     }
 }

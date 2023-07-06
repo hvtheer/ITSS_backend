@@ -10,17 +10,10 @@ class DeliveryInfo extends Model
     use HasFactory;
 
     protected $fillable = [
-        'name',
-        'phone',
-        'order_id',
+        'receiver_name',
+        'numberPhone',
         'note',
         'address',
-        'delivery_fee',
-        'total',
+        'shipping_fee',
     ];
-
-    public function order()
-    {
-        return $this->belongsTo(Order::class);
-    }
 }

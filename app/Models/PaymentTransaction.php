@@ -11,12 +11,13 @@ class PaymentTransaction extends Model
 
     protected $fillable = [
         'content',
+        'card_password',
         'card_number',
-        'delivery_info_id',
+        'invoice_id',
     ];
 
-    public function deliveryInfo()
+    public function invoice()
     {
-        return $this->belongsTo(DeliveryInfo::class);
+        return $this->belongsTo(Invoice::class);
     }
 }

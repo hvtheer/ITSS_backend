@@ -14,18 +14,16 @@ class UserSeeder extends Seeder
             'name' => 'admin',
             'email' => 'admin@example.com',
             'password' => bcrypt('1111'), // You may change this password according to your requirements
-            'role' => 'admin',
         ]);
 
         // Create some user and seller users
-        User::factory()->count(5)->create();
+        User::factory()->count(8)->create();
 
         // Create one more custom user with a specific role
         User::create([
             'name' => 'custom_user',
             'email' => 'custom_user@example.com',
             'password' => bcrypt('1111'),
-            'role' => 'seller',
         ]);
     }
 }

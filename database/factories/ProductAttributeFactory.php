@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Models\Product;
 use App\Models\ProductAttribute;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
@@ -12,8 +13,8 @@ class ProductAttributeFactory extends Factory
     public function definition()
     {
         return [
-            'product_id' => \App\Models\Product::inRandomOrder()->first()->id,
-            'attribute' => $this->faker->word,
+            'product_id' => Product::inRandomOrder()->first()->id,
+            'name' => $this->faker->word,
             'value' => $this->faker->word,
         ];
     }
