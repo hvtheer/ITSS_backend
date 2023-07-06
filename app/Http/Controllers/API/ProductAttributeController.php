@@ -28,8 +28,8 @@ class ProductAttributeController extends Controller
         try {
             $validatedData = $request->validate([
                 'product_id' => 'required|exists:products,id',
-                'attribute_name' => 'required',
-                'attribute_value' => 'required',
+                'name' => 'required',
+                'value' => 'required',
             ]);
 
             $productAttribute = ProductAttribute::create($validatedData);
@@ -53,8 +53,8 @@ class ProductAttributeController extends Controller
         try {
             $validatedData = $request->validate([
                 'product_id' => 'required|exists:products,id',
-                'attribute_name' => 'required',
-                'attribute_value' => 'required',
+                'name' => 'required',
+                'value' => 'required',
             ]);
 
             $productAttribute->update($validatedData);

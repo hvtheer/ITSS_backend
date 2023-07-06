@@ -12,15 +12,9 @@ class Order extends Model
     protected $fillable = [
         'customer_id',
         'shop_id',
-        'coupon_id',
-        'subtotal',
-        'shipping_fee',
-        'total',
-        'payment_method',
-        'delivery_address',
+        'delivery_info_id',
         'order_status',
-        'shipping_method',
-        'tracking_number',
+        'note',
     ];
 
     public function customer()
@@ -33,8 +27,8 @@ class Order extends Model
         return $this->belongsTo(Shop::class);
     }
 
-    public function coupon()
+    public function deliveryInfo()
     {
-        return $this->belongsTo(Coupon::class);
+        return $this->belongsTo(DeliveryInfo::class);
     }
 }

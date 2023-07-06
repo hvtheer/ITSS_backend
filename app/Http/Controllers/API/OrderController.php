@@ -19,7 +19,7 @@ class OrderController extends Controller
 
             return response()->json(['success' => true, 'data' => $orders]);
         } catch (\Exception $e) {
-            return response()->json(['success' => false, 'message' => $e->getMessage()]);
+           return response()->json(['success' => false, 'message' => $e->getMessage()]);
         }
     }
 
@@ -29,15 +29,9 @@ class OrderController extends Controller
             $validatedData = $request->validate([
                 'customer_id' => 'required|exists:customers,id',
                 'shop_id' => 'required|exists:shops,id',
-                'coupon_id' => 'nullable|exists:coupons,id',
-                'subtotal' => 'required|numeric',
-                'shipping_fee' => 'required|numeric',
-                'total' => 'required|numeric',
-                'payment_method' => 'required|in:cod,card',
-                'delivery_address' => 'nullable|string',
+                'delivery_info_id' => 'nullable|exists:delivery_infos,id',
                 'order_status' => 'required|in:pending,accepted,not accepted',
-                'shipping_method' => 'required|in:slow,normal,fast',
-                'tracking_number' => 'nullable|string',
+                'note' => 'nullable',
             ]);
 
             $order = Order::create($validatedData);
@@ -60,17 +54,11 @@ class OrderController extends Controller
     {
         try {
             $validatedData = $request->validate([
-                'customer_id' => 'sometimes|required|exists:customers,id',
-                'shop_id' => 'sometimes|required|exists:shops,id',
-                'coupon_id' => 'nullable|exists:coupons,id',
-                'subtotal' => 'sometimes|required|numeric',
-                'shipping_fee' => 'sometimes|required|numeric',
-                'total' => 'sometimes|required|numeric',
-                'payment_method' => 'sometimes|required|in:cod,card',
-                'delivery_address' => 'nullable|string',
-                'order_status' => 'sometimes|required|in:pending,accepted,not accepted',
-                'shipping_method' => 'sometimes|required|in:slow,normal,fast',
-                'tracking_number' => 'nullable|string',
+                'customer_id' => 'required|exists:customers,id',
+                'shop_id' => 'required|exists:shops,id',
+                'delivery_info_id' => 'nullable|exists:delivery_infos,id',
+                'order_status' => 'required|in:pending,accepted,not accepted',
+                'note' => 'nullable',
             ]);
 
             $order->update($validatedData);

@@ -6,7 +6,7 @@ use Illuminate\Support\Facades\Schema;
 
 class CreateShopsTable extends Migration
 {
-    public function up(): void
+    public function up()
     {
         Schema::create('shops', function (Blueprint $table) {
             $table->id();
@@ -15,16 +15,15 @@ class CreateShopsTable extends Migration
             $table->text('description');
             $table->string('address');
             $table->string('phone_number');
-            $table->dateTime('registration_date');
-            $table->boolean('is_verified');
-            $table->string('shop_logo_url');
+            $table->enum('is_verified', ['PENDING', 'ACCEPTED', 'NOT_ACCEPTED']);
+            $table->string('shop_logo')->nullable();
             $table->timestamps();
 
-            $table->foreign('user_id')->references('id')->on('users');
+            $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
         });
     }
 
-    public function down(): void
+    public function down()
     {
         Schema::dropIfExists('shops');
     }

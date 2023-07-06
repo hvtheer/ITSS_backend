@@ -11,10 +11,9 @@ class OrderItem extends Model
 
     protected $fillable = [
         'order_id',
+        'coupon_id',
         'product_id',
         'quantity',
-        'attribute_id',
-        'total_price',
     ];
 
     public function order()
@@ -22,13 +21,13 @@ class OrderItem extends Model
         return $this->belongsTo(Order::class);
     }
 
+    public function coupon()
+    {
+        return $this->belongsTo(Coupon::class);
+    }
+
     public function product()
     {
         return $this->belongsTo(Product::class);
-    }
-
-    public function attribute()
-    {
-        return $this->belongsTo(ProductAttribute::class);
     }
 }

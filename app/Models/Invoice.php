@@ -5,21 +5,27 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Payment extends Model
+class Invoice extends Model
 {
     use HasFactory;
 
-    protected $primaryKey = 'payment_id';
-
     protected $fillable = [
         'order_id',
-        'payment_date',
-        'payment_status',
-        'payment_amount',
+        'user_coupon_id',
+        'total_amount',
+        'total_amount_decreased',
+        'total_amount_payable',
+        'payment_method',
+        'paid',
     ];
 
     public function order()
     {
         return $this->belongsTo(Order::class);
+    }
+
+    public function userCoupon()
+    {
+        return $this->belongsTo(UserCoupon::class);
     }
 }

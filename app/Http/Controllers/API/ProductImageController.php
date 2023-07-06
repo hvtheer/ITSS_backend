@@ -28,8 +28,7 @@ class ProductImageController extends Controller
         try {
             $validatedData = $request->validate([
                 'product_id' => 'required|exists:products,id',
-                'image_url' => 'required|url',
-                'is_primary_image' => 'boolean',
+                'image_url' => 'required',
             ]);
 
             $productImage = ProductImage::create($validatedData);
@@ -53,8 +52,7 @@ class ProductImageController extends Controller
         try {
             $validatedData = $request->validate([
                 'product_id' => 'required|exists:products,id',
-                'image_url' => 'required|url',
-                'is_primary_image' => 'boolean',
+                'image_url' => 'required',
             ]);
 
             $productImage->update($validatedData);

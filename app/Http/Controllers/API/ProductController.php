@@ -31,8 +31,10 @@ class ProductController extends Controller
                 'shop_id' => 'required|exists:shops,id',
                 'name' => 'required',
                 'description' => 'required',
-                'price' => 'required|numeric|min:0',
-                'stock_quantity' => 'required|integer|min:0',
+                'price' => 'required|numeric',
+                'thumbnail' => 'required',
+                'sold_quantity' => 'required|integer',
+                'stock_quantity' => 'required|integer',
                 'category_id' => 'required|exists:categories,id',
             ]);
 
@@ -60,8 +62,10 @@ class ProductController extends Controller
                 'shop_id' => 'required|exists:shops,id',
                 'name' => 'required',
                 'description' => 'required',
-                'price' => 'required|numeric|min:0',
-                'stock_quantity' => 'required|integer|min:0',
+                'price' => 'required|numeric',
+                'thumbnail' => 'required',
+                'sold_quantity' => 'required|integer',
+                'stock_quantity' => 'required|integer',
                 'category_id' => 'required|exists:categories,id',
             ]);
 

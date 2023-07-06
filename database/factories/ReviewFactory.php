@@ -3,9 +3,9 @@
 namespace Database\Factories;
 
 use App\Models\Order;
-use App\Models\OrderItem;
-use App\Models\Product;
 use App\Models\Review;
+use App\Models\Product;
+use App\Models\Customer;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 class ReviewFactory extends Factory
@@ -14,27 +14,12 @@ class ReviewFactory extends Factory
 
     public function definition()
     {
-        $product = Product::inRandomOrder()->first();
-
-        if ($product) {
-            $orderItem = OrderItem::where('product_id', $product->id)->first();
-
-            if ($orderItem) {
-                $order = Order::find($orderItem->order_id);
-
-                if ($order) {
-                    return [
-                        'product_id' => $product->id,
-                        'order_item_id' => $orderItem->id,
-                        'order_id' => $order->id,
-                        'customer_id' => $order->customer_id,
-                        'rating' => $this->faker->numberBetween(1, 5),
-                        'review_text' => $this->faker->paragraph,
-                    ];
-                }
-            }
-        }
-
-        return [];
+        return [
+            'product_id' => Product::inRandomOrder()->first()->id,
+            'order_id' => Order::inRandomOrder()->first()->id,
+            'customer_id' => Customer::inRandomOrder()->first()->id,
+            'rating' => $this->faker->numberBetween(1, 5),
+            'review_text' => $this->faker->paragraph,
+        ];
     }
 }

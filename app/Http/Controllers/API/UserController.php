@@ -4,6 +4,8 @@ namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Models\RoleUser;
+use App\Models\Role;
 use Illuminate\Http\Request;
 
 class UserController extends Controller
@@ -38,11 +40,14 @@ class UserController extends Controller
     public function show(User $user)
     {
         try {
-            return response()->json(['success' => true, 'data' => $user]);
+            $userWithRole = $user->load('roleUser.role');
+    
+            return response()->json(['success' => true, 'data' => $userWithRole]);
         } catch (\Exception $e) {
             return response()->json(['success' => false, 'message' => $e->getMessage()]);
         }
     }
+    
 
     public function update(Request $request, User $user)
     {

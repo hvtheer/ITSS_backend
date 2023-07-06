@@ -23,12 +23,12 @@ class ReviewController extends Controller
         }
     }
 
-    public function store(Request $request)
+    public function store(Request$request)
     {
         try {
             $validatedData = $request->validate([
                 'product_id' => 'required|exists:products,id',
-                'order_item_id' => 'required|exists:orders,id',
+                'order_id' => 'required|exists:orders,id',
                 'customer_id' => 'required|exists:customers,id',
                 'rating' => 'required|integer|min:1|max:5',
                 'review_text' => 'required',
@@ -54,11 +54,11 @@ class ReviewController extends Controller
     {
         try {
             $validatedData = $request->validate([
-                'product_id' => 'sometimes|required|exists:products,id',
-                'order_item_id' => 'sometimes|required|exists:orders,id',
-                'customer_id' => 'sometimes|required|exists:customers,id',
-                'rating' => 'sometimes|required|integer|min:1|max:5',
-                'review_text' => 'sometimes|required',
+                'product_id' => 'required|exists:products,id',
+                'order_id' => 'required|exists:orders,id',
+                'customer_id' => 'required|exists:customers,id',
+                'rating' => 'required|integer|min:1|max:5',
+                'review_text' => 'required',
             ]);
 
             $review->update($validatedData);

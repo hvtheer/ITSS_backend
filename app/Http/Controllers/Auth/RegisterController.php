@@ -3,10 +3,10 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Models\User;
+use App\Models\RoleUser;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Hash;
-use Laravel\Sanctum\HasApiTokens;
 
 class RegisterController extends Controller
 {
@@ -15,15 +15,19 @@ class RegisterController extends Controller
         $request->validate([
             'name' => 'required|string',
             'email' => 'required|string|email|unique:users',
-            'password' => 'required|string|min:8',
-            'role' => 'required|string|in:admin,customer,seller', // Add role validation
+            'password' => 'required|string|min:4',
         ]);
 
         $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
-            'role' => 'customer', // Set the user role
+        ]);
+        
+        // Assign role to the user
+        $roleUser = RoleUser::create([
+            'user_id' => $user->id,
+            'role_id' => 3,
         ]);
 
         $token = $user->createToken('authToken')->plainTextToken;

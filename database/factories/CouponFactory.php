@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Models\User;
 use App\Models\Coupon;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
@@ -12,10 +13,13 @@ class CouponFactory extends Factory
     public function definition()
     {
         return [
-            'code' => $this->faker->unique()->randomNumber(6),
+            'code' => $this->faker->word,
             'type' => $this->faker->randomElement(['fixed', 'percent']),
-            'start_date' => $this->faker->dateTimeBetween('-1 month', '+1 month'),
-            'end_date' => $this->faker->dateTimeBetween('+1 month', '+3 months'),
+            'discounted_amount' => $this->faker->randomFloat(2, 0, 100),
+            'quantity' => $this->faker->randomNumber(),
+            'created_by' => User::inRandomOrder()->first()->id,
+            'start_date' => $this->faker->dateTimeBetween('-1 month', 'now'),
+            'end_date' => $this->faker->dateTimeBetween('now', '+1 month'),
         ];
     }
 }

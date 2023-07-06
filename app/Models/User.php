@@ -21,8 +21,7 @@ class User extends Authenticatable implements JWTSubject
     protected $fillable = [
         'username',
         'email',
-        'password',
-        'role',
+        'password'
     ];
 
     /**
@@ -65,5 +64,9 @@ class User extends Authenticatable implements JWTSubject
         return [
             'role' => $this->role,
         ];
+    }
+    public function roleUser()
+    {
+        return $this->hasOne(RoleUser::class);
     }
 }

@@ -14,7 +14,6 @@ class UserSeeder extends Seeder
             'name' => 'admin',
             'email' => 'admin@example.com',
             'password' => bcrypt('1111'), // You may change this password according to your requirements
-            'role' => 'admin',
         ]);
 
         // Create some user and seller users
@@ -25,7 +24,6 @@ class UserSeeder extends Seeder
             'name' => 'custom_user',
             'email' => 'custom_user@example.com',
             'password' => bcrypt('1111'),
-            'role' => 'seller',
         ]);
     }
 }

@@ -19,7 +19,7 @@ class CouponController extends Controller
 
             return response()->json(['success' => true, 'data' => $coupons]);
         } catch (\Exception $e) {
-            return response()->json(['success' => false, 'message' => $e->getMessage()]);
+            return response()->json(['success' => false, 'message' =>$e->getMessage()]);
         }
     }
 
@@ -27,10 +27,13 @@ class CouponController extends Controller
     {
         try {
             $validatedData = $request->validate([
-                'code' => 'required|unique:coupons',
+                'code' => 'required',
                 'type' => 'required|in:fixed,percent',
+                'discounted_amount' => 'nullable|numeric',
+                'quantity' => 'required|integer',
+                'created_by' => 'required|exists:users,id',
                 'start_date' => 'required|date',
-                'end_date' => 'required|date|after:start_date',
+                'end_date' => 'required|date',
             ]);
 
             $coupon = Coupon::create($validatedData);
@@ -53,10 +56,13 @@ class CouponController extends Controller
     {
         try {
             $validatedData = $request->validate([
-                'code' => 'required|unique:coupons,code,' . $coupon->id,
+                'code' => 'required',
                 'type' => 'required|in:fixed,percent',
+                'discounted_amount' => 'nullable|numeric',
+                'quantity' => 'required|integer',
+                'created_by' => 'required|exists:users,id',
                 'start_date' => 'required|date',
-                'end_date' => 'required|date|after:start_date',
+                'end_date' => 'required|date',
             ]);
 
             $coupon->update($validatedData);

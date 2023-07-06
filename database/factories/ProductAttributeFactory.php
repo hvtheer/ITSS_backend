@@ -14,8 +14,8 @@ class ProductAttributeFactory extends Factory
     {
         return [
             'product_id' => Product::inRandomOrder()->first()->id,
-            'attribute_name' => $this->faker->word,
-            'attribute_value' => $this->faker->word,
+            'name' => $this->faker->word,
+            'value' => $this->faker->word,
         ];
     }
 }

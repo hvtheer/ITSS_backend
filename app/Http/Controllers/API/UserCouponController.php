@@ -53,10 +53,10 @@ class UserCouponController extends Controller
     {
         try {
             $validatedData = $request->validate([
-                'user_id' => 'sometimes|required|exists:users,id',
-                'coupon_id' => 'sometimes|required|exists:coupons,id',
-                'is_used' => 'sometimes|required|boolean',
-                'used_date' => 'sometimes|nullable|date',
+                'user_id' => 'required|exists:users,id',
+                'coupon_id' => 'required|exists:coupons,id',
+                'is_used' => 'required|boolean',
+                'used_date' => 'nullable|date',
             ]);
 
             $userCoupon->update($validatedData);

@@ -27,14 +27,13 @@ class ShopController extends Controller
     {
         try {
             $validatedData = $request->validate([
-                'user_id' => 'nullable|exists:users,id|unique:shops,user_id',
+                'user_id' => 'required|exists:users,id|unique:shops,user_id',
                 'shop_name' => 'required',
                 'description' => 'required',
                 'address' => 'required',
                 'phone_number' => 'required',
-                'registration_date' => 'required|date',
-                'is_verified' => 'required|boolean',
-                'shop_logo_url' => 'required',
+                'is_verified' => 'required|in:PENDING,ACCEPTED,NOT_ACCEPTED',
+                'shop_logo' => 'nullable',
             ]);
 
             $shop = Shop::create($validatedData);
@@ -62,9 +61,8 @@ class ShopController extends Controller
                 'description' => 'required',
                 'address' => 'required',
                 'phone_number' => 'required',
-                'registration_date' => 'required|date',
-                'is_verified' => 'required|boolean',
-                'shop_logo_url' => 'required',
+                'is_verified' => 'required|in:PENDING,ACCEPTED,NOT_ACCEPTED',
+                'shop_logo' => 'nullable',
             ]);
 
             $shop->update($validatedData);

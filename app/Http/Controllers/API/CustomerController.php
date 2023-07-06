@@ -27,11 +27,10 @@ class CustomerController extends Controller
     {
         try {
             $validatedData = $request->validate([
-                'user_id' => 'nullable|exists:users,id',
+                'user_id' => 'nullable|exists:users,id|unique:customers,user_id',
                 'name' => 'required',
+                'phone_number' => 'required',
                 'address' => 'required',
-                'phone' => 'required',
-                'is_login' => 'required|boolean',
             ]);
 
             $customer = Customer::create($validatedData);
@@ -54,11 +53,10 @@ class CustomerController extends Controller
     {
         try {
             $validatedData = $request->validate([
-                'user_id' => 'nullable|exists:users,id',
+                'user_id' => 'nullable|exists:users,id|unique:customers,user_id,' . $customer->id,
                 'name' => 'required',
+                'phone_number' => 'required',
                 'address' => 'required',
-                'phone' => 'required',
-                'is_login' => 'required|boolean',
             ]);
 
             $customer->update($validatedData);

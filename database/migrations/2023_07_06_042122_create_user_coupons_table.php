@@ -6,7 +6,7 @@ use Illuminate\Support\Facades\Schema;
 
 class CreateUserCouponsTable extends Migration
 {
-    public function up(): void
+    public function up()
     {
         Schema::create('user_coupons', function (Blueprint $table) {
             $table->id();
@@ -21,7 +21,7 @@ class CreateUserCouponsTable extends Migration
         });
     }
 
-    public function down(): void
+    public function down()
     {
         Schema::dropIfExists('user_coupons');
     }

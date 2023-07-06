@@ -22,16 +22,14 @@ class OrderItemController extends Controller
             return response()->json(['success' => false, 'message' => $e->getMessage()]);
         }
     }
-
-    public function store(Request $request)
+       public function store(Request $request)
     {
         try {
             $validatedData = $request->validate([
                 'order_id' => 'required|exists:orders,id',
+                'coupon_id' => 'nullable|exists:coupons,id',
                 'product_id' => 'required|exists:products,id',
                 'quantity' => 'required|integer',
-                'attribute_id' => 'nullable|exists:product_attributes,id',
-                'total_price' => 'required|numeric',
             ]);
 
             $orderItem = OrderItem::create($validatedData);
@@ -54,11 +52,10 @@ class OrderItemController extends Controller
     {
         try {
             $validatedData = $request->validate([
-                'order_id' => 'sometimes|required|exists:orders,id',
-                'product_id' => 'sometimes|required|exists:products,id',
-                'quantity' => 'sometimes|required|integer',
-                'attribute_id' => 'nullable|exists:product_attributes,id',
-                'total_price' => 'sometimes|required|numeric',
+                'order_id' => 'required|exists:orders,id',
+                'coupon_id' => 'nullable|exists:coupons,id',
+                'product_id' => 'required|exists:products,id',
+                'quantity' => 'required|integer',
             ]);
 
             $orderItem->update($validatedData);

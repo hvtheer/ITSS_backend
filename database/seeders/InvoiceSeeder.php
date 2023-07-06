@@ -2,13 +2,13 @@
 
 namespace Database\Seeders;
 
-use App\Models\Payment;
+use App\Models\Invoice;
 use Illuminate\Database\Seeder;
 
-class PaymentSeeder extends Seeder
+class InvoiceSeeder extends Seeder
 {
     public function run()
     {
-        Payment::factory()->count(10)->create();
+        Invoice::factory()->count(10)->create();
     }
 }

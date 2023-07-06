@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers\API;
 
+use App\Http\Controllers\Controller;
 use App\Models\Category;
 use Illuminate\Http\Request;
-use App\Http\Controllers\Controller;
 
 class CategoryController extends Controller
 {
@@ -27,9 +27,8 @@ class CategoryController extends Controller
     {
         try {
             $validatedData = $request->validate([
-                'slug' => 'required|unique:categories',
                 'name' => 'required',
-                'status' => 'boolean',
+                'slug' => 'required|unique:categories',
             ]);
 
             $category = Category::create($validatedData);
@@ -39,28 +38,22 @@ class CategoryController extends Controller
         }
     }
 
-    public function show($categorySlug)
+    public function show(Category $category)
     {
         try {
-            $category = Category::where('slug', $categorySlug)->with('products')->first();
-            if (!$category) {
-                return response()->json(['success' => false, 'message' => 'Category not found.']);
-            }
-            
+            $category = $category->load('products');
             return response()->json(['success' => true, 'data' => $category]);
         } catch (\Exception $e) {
             return response()->json(['success' => false, 'message' => $e->getMessage()]);
         }
     }
-    
 
     public function update(Request $request, Category $category)
     {
         try {
             $validatedData = $request->validate([
-                'slug' => 'required|unique:categories,slug,' . $category->id,
                 'name' => 'required',
-                'status' => 'boolean',
+                'slug' => 'required|unique:categories,slug,' . $category->id,
             ]);
 
             $category->update($validatedData);

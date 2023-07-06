@@ -15,9 +15,8 @@ class Shop extends Model
         'description',
         'address',
         'phone_number',
-        'registration_date',
         'is_verified',
-        'shop_logo_url',
+        'shop_logo',
     ];
 
     public function user()
