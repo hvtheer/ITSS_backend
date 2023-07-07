@@ -16,7 +16,7 @@ class OrderItemFactory extends Factory
     {
         return [
             'order_id' => Order::inRandomOrder()->first()->id,
-            'coupon_id' => Coupon::inRandomOrder()->first()->id,
+            'product_coupon_id' => Coupon::inRandomOrder()->first()->id,
             'product_id' => Product::inRandomOrder()->first()->id,
             'quantity' => $this->faker->numberBetween(1, 10),
         ];

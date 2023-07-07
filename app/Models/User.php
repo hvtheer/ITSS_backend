@@ -6,8 +6,9 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use Laravel\Sanctum\HasApiTokens;
 use Tymon\JWTAuth\Contracts\JWTSubject;
+use Laravel\Sanctum\HasApiTokens;
+
 
 class User extends Authenticatable implements JWTSubject
 {
@@ -44,6 +45,11 @@ class User extends Authenticatable implements JWTSubject
         'password' => 'hashed',
     ];
 
+    public function roleUser()
+    {
+        return $this->hasOne(RoleUser::class);
+    }
+
         /**
      * Get the identifier that will be stored in the subject claim of the JWT.
      *
@@ -62,11 +68,7 @@ class User extends Authenticatable implements JWTSubject
     public function getJWTCustomClaims()
     {
         return [
-            'role' => $this->role,
+            'role_id' => $this->roleUser->role_id,
         ];
-    }
-    public function roleUser()
-    {
-        return $this->hasOne(RoleUser::class);
     }
 }

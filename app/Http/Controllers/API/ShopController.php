@@ -46,6 +46,7 @@ class ShopController extends Controller
     public function show(Shop $shop)
     {
         try {
+            $shop = $shop->load('products');
             return response()->json(['success' => true, 'data' => $shop]);
         } catch (\Exception $e) {
             return response()->json(['success' => false, 'message' => $e->getMessage()]);
@@ -77,6 +78,23 @@ class ShopController extends Controller
         try {
             $shop->delete();
             return response()->json(['success' => true], 204);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()]);
+        }
+    }
+
+    public function topShopsBySoldQuantity()
+    {
+        try {
+            $topShops = Shop::select('shops.id', 'shops.shop_name', 'shops.address', 'shops.user_id')
+            ->join('products', 'shops.id', '=', 'products.shop_id')
+            ->groupBy('shops.id', 'shops.shop_name', 'shops.address', 'shops.user_id')
+            ->orderByRaw('SUM(products.sold_quantity) DESC')
+            ->limit(10)
+            ->get();
+             
+
+            return response()->json(['success' => true, 'data' => $topShops]);
         } catch (\Exception $e) {
             return response()->json(['success' => false, 'message' => $e->getMessage()]);
         }

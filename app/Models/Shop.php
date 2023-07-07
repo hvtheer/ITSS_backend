@@ -15,12 +15,16 @@ class Shop extends Model
         'description',
         'address',
         'phone_number',
-        'is_verified',
         'shop_logo',
     ];
 
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function products()
+    {
+        return $this->hasMany(Product::class);
     }
 }

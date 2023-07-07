@@ -15,6 +15,8 @@ class Order extends Model
         'delivery_info_id',
         'order_status',
         'note',
+        'payment_method',
+        'paid',
     ];
 
     public function customer()
@@ -30,5 +32,15 @@ class Order extends Model
     public function deliveryInfo()
     {
         return $this->belongsTo(DeliveryInfo::class);
+    }
+
+    public function orderItems()
+    {
+        return $this->hasMany(OrderItem::class);
+    }
+
+    public function invoice()
+    {
+        return $this->hasOne(Invoice::class);
     }
 }

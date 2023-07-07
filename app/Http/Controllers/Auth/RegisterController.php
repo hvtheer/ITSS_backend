@@ -3,35 +3,29 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Models\User;
-use App\Models\RoleUser;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
-use Illuminate\Support\Facades\Hash;
 
 class RegisterController extends Controller
 {
     public function register(Request $request)
     {
-        $request->validate([
-            'name' => 'required|string',
-            'email' => 'required|string|email|unique:users',
-            'password' => 'required|string|min:4',
-        ]);
+        try {
+            $validatedData = $request->validate([
+                'username' => 'required|unique:users',
+                'email' => 'required|email|unique:users',
+                'password' => 'required',
+            ]);
 
-        $user = User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => Hash::make($request->password),
-        ]);
-        
-        // Assign role to the user
-        $roleUser = RoleUser::create([
-            'user_id' => $user->id,
-            'role_id' => 3,
-        ]);
+            $user = User::create($validatedData);
+            $user->roleUser()->create([
+                'role_id' => '3',
+                'status' => 'pending',
+            ]);
 
-        $token = $user->createToken('authToken')->plainTextToken;
-
-        return response()->json(['token' => $token], 201);
+            return response()->json(['success' => true, 'data' => $user], 201);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()]);
+        }
     }
 }

@@ -11,7 +11,7 @@ class UserSeeder extends Seeder
     {
         // Create an admin user
         User::create([
-            'name' => 'admin',
+            'username' => 'admin',
             'email' => 'admin@example.com',
             'password' => bcrypt('1111'), // You may change this password according to your requirements
         ]);
@@ -21,7 +21,7 @@ class UserSeeder extends Seeder
 
         // Create one more custom user with a specific role
         User::create([
-            'name' => 'custom_user',
+            'username' => 'custom_user',
             'email' => 'custom_user@example.com',
             'password' => bcrypt('1111'),
         ]);

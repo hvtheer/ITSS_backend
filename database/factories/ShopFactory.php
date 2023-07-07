@@ -18,7 +18,6 @@ class ShopFactory extends Factory
             'description' => $this->faker->paragraph,
             'address' => $this->faker->address,
             'phone_number' => $this->faker->phoneNumber,
-            'is_verified' => $this->faker->randomElement(['PENDING', 'ACCEPTED', 'NOT_ACCEPTED']),
             'shop_logo' => null,
         ];
     }

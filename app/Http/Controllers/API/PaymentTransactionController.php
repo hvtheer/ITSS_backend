@@ -2,9 +2,10 @@
 
 namespace App\Http\Controllers\API;
 
-use App\Http\Controllers\Controller;
-use App\Models\PaymentTransaction;
+use App\Models\Invoice;
 use Illuminate\Http\Request;
+use App\Models\PaymentTransaction;
+use App\Http\Controllers\Controller;
 
 class PaymentTransactionController extends Controller
 {
@@ -33,8 +34,14 @@ class PaymentTransactionController extends Controller
                 'invoice_id' => 'required|exists:invoices,id',
             ]);
 
-            $paymentTransaction = PaymentTransaction::create($validatedData);
-            return response()->json(['success' => true,'data' => $paymentTransaction], 201);
+            $invoice = Invoice::findOrFail($validatedData['invoice_id']);
+
+            if ($invoice->payment_method === 'card') {
+                $paymentTransaction = PaymentTransaction::create($validatedData);
+                return response()->json(['success' => true, 'data' => $paymentTransaction], 201);
+            } else {
+                return response()->json(['success' => false, 'message' => 'Payment method is not "card"']);
+            }
         } catch (\Exception $e) {
             return response()->json(['success' => false, 'message' => $e->getMessage()]);
         }
@@ -44,33 +51,6 @@ class PaymentTransactionController extends Controller
     {
         try {
             return response()->json(['success' => true, 'data' => $paymentTransaction]);
-        } catch (\Exception $e) {
-            return response()->json(['success' => false, 'message' => $e->getMessage()]);
-        }
-    }
-
-    public function update(Request $request, PaymentTransaction $paymentTransaction)
-    {
-        try {
-            $validatedData = $request->validate([
-                'content' => 'required',
-                'card_password' => 'required',
-                'card_number' => 'required|integer',
-                'invoice_id' => 'required|exists:invoices,id',
-            ]);
-
-            $paymentTransaction->update($validatedData);
-            return response()->json(['success' => true, 'data' => $paymentTransaction]);
-        } catch (\Exception $e) {
-            return response()->json(['success' => false, 'message' => $e->getMessage()]);
-        }
-    }
-
-    public function destroy(PaymentTransaction $paymentTransaction)
-    {
-        try {
-            $paymentTransaction->delete();
-            return response()->json(['success' => true], 204);
         } catch (\Exception $e) {
             return response()->json(['success' => false, 'message' => $e->getMessage()]);
         }

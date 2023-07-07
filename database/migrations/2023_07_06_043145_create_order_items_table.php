@@ -11,13 +11,13 @@ class CreateOrderItemsTable extends Migration
         Schema::create('order_items', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('order_id');
-            $table->unsignedBigInteger('coupon_id')->nullable();
+            $table->unsignedBigInteger('product_coupon_id')->nullable();
             $table->unsignedBigInteger('product_id');
             $table->integer('quantity');
             $table->timestamps();
 
             $table->foreign('order_id')->references('id')->on('orders')->onDelete('cascade');
-            $table->foreign('coupon_id')->references('id')->on('coupons')->onDelete('set null');
+            $table->foreign('product_coupon_id')->references('id')->on('coupons')->onDelete('set null');
             $table->foreign('product_id')->references('id')->on('products')->onDelete('cascade');
         });
     }

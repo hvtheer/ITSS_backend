@@ -15,7 +15,6 @@ class CreateShopsTable extends Migration
             $table->text('description');
             $table->string('address');
             $table->string('phone_number');
-            $table->enum('is_verified', ['PENDING', 'ACCEPTED', 'NOT_ACCEPTED']);
             $table->string('shop_logo')->nullable();
             $table->timestamps();
 
