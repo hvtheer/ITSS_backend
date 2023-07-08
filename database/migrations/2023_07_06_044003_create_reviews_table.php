@@ -17,6 +17,8 @@ class CreateReviewsTable extends Migration
             $table->text('review_text');
             $table->timestamps();
 
+            $table->unique(['product_id', 'order_id']);
+            
             $table->foreign('product_id')->references('id')->on('products')->onDelete('cascade');
             $table->foreign('order_id')->references('id')->on('orders')->onDelete('cascade');
             $table->foreign('customer_id')->references('id')->on('customers')->onDelete('cascade');

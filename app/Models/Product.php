@@ -2,8 +2,11 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
+use App\Models\OrderItem;
+use App\Observers\ProductObserver;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Support\Str;
 
 class Product extends Model
@@ -20,6 +23,7 @@ class Product extends Model
         'sold_quantity',
         'stock_quantity',
         'category_id',
+        'avg_rating',
     ];
 
     protected static function boot()
@@ -40,4 +44,48 @@ class Product extends Model
     {
         return $this->belongsTo(Category::class);
     }
+
+    public function scopeWithinPriceRange($query, $minPrice, $maxPrice)
+    {
+        return $query->whereBetween('price', [$minPrice, $maxPrice]);
+    }
+
+    public function orderItems()
+    {
+        return $this->hasMany(OrderItem::class);
+    }
+
+    public function productAttributes()
+    {
+        return $this->hasMany(ProductAttribute::class);
+    }
+
+    public function productImages()
+    {
+        return $this->hasMany(ProductImage::class);
+    }
+
+    public function productCoupons()
+    {
+        return $this->hasMany(ProductCoupons::class);
+    }
+
+    public function reviews()
+    {
+        return $this->hasMany(Review::class);
+    }
+
+    public function updateStockQuantity($quantity)
+    {
+        $this->sold_quantity += $quantity;
+        $this->stock_quantity -= $quantity;
+        $this->save();
+    }
+    
+    public function calculateAverageRating()
+    {
+        $averageRating = $this->reviews()->avg('rating');
+        $this->avg_rating = $averageRating ?? 0;
+        $this->save();
+    }    
 }

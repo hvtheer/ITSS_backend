@@ -2,36 +2,53 @@
 
 namespace App\Http\Controllers\Auth;
 
-use Illuminate\Http\Request;
-use Tymon\JWTAuth\Facades\JWTAuth;
 use App\Http\Controllers\Controller;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use App\Models\RoleUser;
+use Illuminate\Support\Facades\Validator;
+use Tymon\JWTAuth\Facades\JWTAuth;
+use Tymon\JWTAuth\Exceptions\JWTException;
 use App\Models\Role;
+use App\Models\RoleUser;
 
 class LoginController extends Controller
 {
     public function login(Request $request)
     {
-        $credentials = $request->validate([
-            'email' => 'required|string|email',
-            'password' => 'required|string',
+        $credentials = $request->only('email', 'password');
+
+        $validator = Validator::make($credentials, [
+            'email' => 'required|email',
+            'password' => 'required',
         ]);
 
-        if (!Auth::attempt($credentials)) {
-            return response()->json(['message' => 'Invalid login credentials'], 401);
+        if ($validator->fails()) {
+            return response()->json(['error' => 'Invalid email or password'], 400);
+        }
+
+        try {
+            if (! $token = JWTAuth::attempt($credentials)) {
+                return response()->json(['error' => 'Invalid email or password'], 401);
+            }
+        } catch (JWTException $e) {
+            return response()->json(['error' => 'Could not create token'], 500);
         }
 
         $user = Auth::user();
-        
-        // Retrieve the role of the user from the RoleUser table
-        $roleUser = RoleUser::where('user_id', $user->id)->first();
-        $roleId = $roleUser->role_id; // Assuming the role_id is stored in the RoleUser table
-        
+        $roleUser = $user->roleUser;
 
-        // Generate the JWT token with the user's role as a custom claim
-        $token = JWTAuth::fromUser($user, ['role_id' => $roleId]);
+        if (!$roleUser || !in_array($roleUser->role_id, [Role::ROLE_ADMIN, Role::ROLE_SELLER, Role::ROLE_CUSTOMER])) {
+            return response()->json(['error' => 'Unauthorized'], 401);
+        }
 
-        return response()->json(['token' => $token], 200);
+        return response()->json([
+            'success' => true,
+            'token' => $token,
+            'user' => [
+                'id' => $user->id,
+                'email' => $user->email,
+                'role' => $roleUser->role_id,
+            ],
+        ]);
     }
 }

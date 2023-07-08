@@ -12,9 +12,22 @@ class RoleUserSeeder extends Seeder
         // Create an admin user
         RoleUser::create([
             'user_id' => '1',
-            'role_id' => '1'
+            'role_id' => '1',
+            'status' => 'approved'
         ]);
 
-        // RoleUser::factory()->count(10)->create();
+        RoleUser::create([
+            'user_id' => '2',
+            'role_id' => '3',
+            'status' => 'pending'
+        ]);
+
+        RoleUser::create([
+            'user_id' => '3',
+            'role_id' => '3',
+            'status' => 'pending'
+        ]);
+
+        RoleUser::factory()->count(7)->create();
     }
 }

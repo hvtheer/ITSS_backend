@@ -19,6 +19,7 @@ class CreateProductsTable extends Migration
             $table->integer('sold_quantity')->default(0);
             $table->integer('stock_quantity')->default(0);
             $table->unsignedBigInteger('category_id');
+            $table->decimal('avg_rating', 3, 2)->default('0');
             $table->timestamps();
 
             $table->foreign('shop_id')->references('id')->on('shops')->onDelete('cascade');

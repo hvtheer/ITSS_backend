@@ -23,4 +23,14 @@ class Coupon extends Model
     {
         return $this->belongsTo(User::class, 'created_by');
     }
+
+    public function productCoupons()
+    {
+        return $this->hasMany(ProductCoupon::class);
+    }
+
+    public function customerCoupons()
+    {
+        return $this->hasMany(CustomerCoupon::class);
+    }
 }

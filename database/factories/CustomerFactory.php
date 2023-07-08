@@ -3,6 +3,7 @@
 namespace Database\Factories;
 
 use App\Models\Customer;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 class CustomerFactory extends Factory
@@ -12,7 +13,7 @@ class CustomerFactory extends Factory
     public function definition()
     {
         return [
-            'user_id' => null, // Customer can be associated with a user (or set user_id here)
+            'user_id' => User::inRandomOrder()->first()->id,
             'name' => $this->faker->name,
             'phone_number' => $this->faker->phoneNumber,
             'address' => $this->faker->address,

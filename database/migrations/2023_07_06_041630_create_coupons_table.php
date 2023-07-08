@@ -12,7 +12,7 @@ class CreateCouponsTable extends Migration
             $table->id();
             $table->string('code');
             $table->enum('type', ['fixed', 'percent']);
-            $table->decimal('discounted_amount', 8, 2)->nullable();
+            $table->decimal('discounted_amount', 8, 2);
             $table->integer('quantity');
             $table->unsignedBigInteger('created_by');
             $table->datetime('start_date');

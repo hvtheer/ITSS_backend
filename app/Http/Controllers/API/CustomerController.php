@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers\API;
 
-use App\Http\Controllers\Controller;
+use App\Models\Role;
 use App\Models\Customer;
 use Illuminate\Http\Request;
+use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Auth;
 
 class CustomerController extends Controller
 {
@@ -26,6 +28,12 @@ class CustomerController extends Controller
     public function store(Request $request)
     {
         try {
+            $authenticatedUser = Auth::user();
+
+            if ($authenticatedUser->roleUser->role_id !== Role::ROLE_ADMIN) {
+                throw new \Exception('You are not authorized to create a customer.');
+            }
+
             $validatedData = $request->validate([
                 'user_id' => 'nullable|exists:users,id|unique:customers,user_id',
                 'name' => 'required',
@@ -52,6 +60,15 @@ class CustomerController extends Controller
     public function update(Request $request, Customer $customer)
     {
         try {
+            $authenticatedUser = Auth::user();
+
+            if (
+                $authenticatedUser->roleUser->role_id !== Role::ROLE_ADMIN &&
+                $authenticatedUser->id !== $customer->user_id
+            ) {
+                throw new \Exception('You are not authorized to update this customer.');
+            }
+
             $validatedData = $request->validate([
                 'user_id' => 'nullable|exists:users,id|unique:customers,user_id,' . $customer->id,
                 'name' => 'required',
@@ -69,6 +86,15 @@ class CustomerController extends Controller
     public function destroy(Customer $customer)
     {
         try {
+            $authenticatedUser = Auth::user();
+
+            if (
+                $authenticatedUser->roleUser->role_id !== Role::ROLE_ADMIN &&
+                $authenticatedUser->id !== $customer->user_id
+            ) {
+                throw new \Exception('You are not authorized to delete this customer.');
+            }
+
             $customer->delete();
             return response()->json(['success' => true], 204);
         } catch (\Exception $e) {

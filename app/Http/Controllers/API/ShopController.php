@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers\API;
 
-use App\Http\Controllers\Controller;
+use App\Models\Role;
 use App\Models\Shop;
 use Illuminate\Http\Request;
+use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Auth;
 
 class ShopController extends Controller
 {
@@ -26,6 +28,12 @@ class ShopController extends Controller
     public function store(Request $request)
     {
         try {
+            $authenticatedUser = Auth::user();
+
+            if ($authenticatedUser->roleUser->role_id !== Role::ROLE_ADMIN) {
+                throw new \Exception('You are not authorized to create a shop.');
+            }
+
             $validatedData = $request->validate([
                 'user_id' => 'required|exists:users,id|unique:shops,user_id',
                 'shop_name' => 'required',
@@ -46,6 +54,7 @@ class ShopController extends Controller
     public function show(Shop $shop)
     {
         try {
+            $shop = $shop->load('products');
             return response()->json(['success' => true, 'data' => $shop]);
         } catch (\Exception $e) {
             return response()->json(['success' => false, 'message' => $e->getMessage()]);
@@ -55,6 +64,15 @@ class ShopController extends Controller
     public function update(Request $request, Shop $shop)
     {
         try {
+            $authenticatedUser = Auth::user();
+
+            if (
+                $authenticatedUser->roleUser->role_id !== Role::ROLE_ADMIN &&
+                $authenticatedUser->id !== $shop->user_id
+            ) {
+                throw new \Exception('You are not authorized to update this shop.');
+            }
+
             $validatedData = $request->validate([
                 'user_id' => 'nullable|exists:users,id|unique:shops,user_id,' . $shop->id,
                 'shop_name' => 'required',
@@ -75,8 +93,33 @@ class ShopController extends Controller
     public function destroy(Shop $shop)
     {
         try {
+            $authenticatedUser = Auth::user();
+
+            if (
+                $authenticatedUser->roleUser->role_id !== Role::ROLE_ADMIN &&
+                $authenticatedUser->id !== $shop->user_id
+            ) {
+                throw new \Exception('You are not authorized to delete this shop.');
+            }
+
             $shop->delete();
             return response()->json(['success' => true], 204);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()]);
+        }
+    }
+
+    public function topShopsBySoldQuantity()
+    {
+        try {
+            $topShops = Shop::select('shops.id', 'shops.shop_name', 'shops.address', 'shops.user_id')
+                ->join('products', 'shops.id', '=', 'products.shop_id')
+                ->groupBy('shops.id', 'shops.shop_name', 'shops.address', 'shops.user_id')
+                ->orderByRaw('SUM(products.sold_quantity) DESC')
+                ->limit(10)
+                ->get();
+
+            return response()->json(['success' => true, 'data' => $topShops]);
         } catch (\Exception $e) {
             return response()->json(['success' => false, 'message' => $e->getMessage()]);
         }
