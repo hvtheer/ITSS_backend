@@ -28,6 +28,6 @@ class RoleUserSeeder extends Seeder
             'status' => 'pending'
         ]);
 
-        // RoleUser::factory()->count(10)->create();
+        RoleUser::factory()->count(7)->create();
     }
 }

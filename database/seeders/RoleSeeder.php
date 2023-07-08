@@ -15,11 +15,11 @@ class RoleSeeder extends Seeder
         ]);
         // Create an customer user
         Role::create([
-            'role' => 'customer',
+            'role' => 'seller',
         ]);
         // Create an customer user
         Role::create([
-            'role' => 'seller',
+            'role' => 'customer',
         ]);
     }
 }

@@ -5,18 +5,17 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class UserCoupon extends Model
+class CustomerCoupon extends Model
 {
     use HasFactory;
 
     protected $fillable = [
-        'user_id',
+        'customer_id',
         'coupon_id',
         'is_used',
-        'used_date',
     ];
 
-    public function user()
+    public function customer()
     {
         return $this->belongsTo(User::class);
     }

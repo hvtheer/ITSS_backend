@@ -5,6 +5,7 @@ namespace App\Http\Controllers\API;
 use App\Http\Controllers\Controller;
 use App\Models\Role;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class RoleController extends Controller
 {
@@ -26,6 +27,12 @@ class RoleController extends Controller
     public function store(Request $request)
     {
         try {
+            $authenticatedUser = Auth::user();
+
+            if ($authenticatedUser->roleUser->role_id !== Role::ROLE_ADMIN) {
+                throw new \Exception('You are not authorized to create a role.');
+            }
+
             $validatedData = $request->validate([
                 'role' => 'required|unique:roles,role',
             ]);
@@ -49,6 +56,12 @@ class RoleController extends Controller
     public function update(Request $request, Role $role)
     {
         try {
+            $authenticatedUser = Auth::user();
+
+            if ($authenticatedUser->roleUser->role_id !== Role::ROLE_ADMIN) {
+                throw new \Exception('You are not authorized to update this role.');
+            }
+
             $validatedData = $request->validate([
                 'role' => 'sometimes|required|unique:roles,role,' . $role->id,
             ]);
@@ -63,6 +76,12 @@ class RoleController extends Controller
     public function destroy(Role $role)
     {
         try {
+            $authenticatedUser = Auth::user();
+
+            if ($authenticatedUser->roleUser->role_id !== Role::ROLE_ADMIN) {
+                throw new \Exception('You are not authorized to delete this role.');
+            }
+
             $role->delete();
             return response()->json(['success' => true], 204);
         } catch (\Exception $e) {

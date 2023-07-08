@@ -84,7 +84,8 @@ class Product extends Model
     
     public function calculateAverageRating()
     {
-        $this->avg_rating = $this->reviews()->avg('rating');
+        $averageRating = $this->reviews()->avg('rating');
+        $this->avg_rating = $averageRating ?? 0;
         $this->save();
     }    
 }

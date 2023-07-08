@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\API;
 
+use App\Models\Role;
 use App\Models\Category;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
@@ -24,20 +25,21 @@ class CategoryController extends Controller
         }
     }
 
-
     public function store(Request $request)
     {
-        // Check if the user has the required role
-        if (!Auth::user()->roleUser || !Auth::user()->roleUser->role_id = 1 ){
-            return response()->json(['success' => false, 'message' => 'Unauthorized'], 401);
-        }
-    
         try {
+            $authenticatedUser = Auth::user();
+
+            // Check if the user has the required role
+            if (!$authenticatedUser->roleUser || $authenticatedUser->roleUser->role_id !== Role::ROLE_ADMIN) {
+                throw new \Exception('You are not authorized to create a category.');
+            }
+
             $validatedData = $request->validate([
                 'name' => 'required',
                 'slug' => 'required|unique:categories',
             ]);
-    
+
             $category = Category::create($validatedData);
             return response()->json(['success' => true, 'data' => $category], 201);
         } catch (\Exception $e) {
@@ -57,17 +59,19 @@ class CategoryController extends Controller
 
     public function update(Request $request, Category $category)
     {
-        // Check if the user has the required role
-        if (!Auth::user()->roleUser || !Auth::user()->roleUser->role_id = 1) {
-            return response()->json(['success' => false, 'message' => 'Unauthorized'], 401);
-        }
-    
         try {
+            $authenticatedUser = Auth::user();
+
+            // Check if the user has the required role
+            if (!$authenticatedUser->roleUser || $authenticatedUser->roleUser->role_id !== Role::ROLE_ADMIN) {
+                throw new \Exception('You are not authorized to update this category.');
+            }
+
             $validatedData = $request->validate([
                 'name' => 'required',
                 'slug' => 'required|unique:categories,slug,' . $category->id,
             ]);
-    
+
             $category->update($validatedData);
             return response()->json(['success' => true, 'data' => $category]);
         } catch (\Exception $e) {
@@ -77,12 +81,14 @@ class CategoryController extends Controller
     
     public function destroy(Category $category)
     {
-        // Check if the user has the required role
-        if (!Auth::user()->roleUser || !in_array(Auth::user()->roleUser->role_id, [2, 3])) {
-            return response()->json(['success' => false, 'message' => 'Unauthorized'], 401);
-        }
-    
         try {
+            $authenticatedUser = Auth::user();
+
+            // Check if the user has the required role
+            if (!$authenticatedUser->roleUser || $authenticatedUser->roleUser->role_id !== Role::ROLE_ADMIN) {
+                throw new \Exception('You are not authorized to delete this category.');
+            }
+
             $category->delete();
             return response()->json(['success' => true], 204);
         } catch (\Exception $e) {

@@ -138,16 +138,21 @@ class ProductController extends Controller
         }
     }
 
-    public function getProductsByPriceRange(Request $request)
+    public function filterProducts(Request $request)
     {
         $minPrice = $request->input('min');
         $maxPrice = $request->input('max');
-
+        $minRating = $request->input('minRating');
+    
         try {
             $products = Product::where('price', '>=', $minPrice)
                 ->where('price', '<=', $maxPrice)
+                ->where(function ($query) use ($minRating) {
+                    $query->where('avg_rating', '>=', $minRating)
+                          ->orWhereNull('avg_rating');
+                })
                 ->get();
-
+    
             return response()->json([
                 'success' => true,
                 'data' => $products,
@@ -159,28 +164,7 @@ class ProductController extends Controller
             ]);
         }
     }
-
-    public function getProductsByRatingRange(Request $request)
-    {
-        $minRating = $request->input('min');
-        $maxRating = $request->input('max');
-
-        try {
-            $products = Product::whereHas('reviews', function ($query) use ($minRating, $maxRating) {
-                $query->whereBetween('rating', [$minRating, $maxRating]);
-            })->get();
-
-            return response()->json([
-                'success' => true,
-                'data' => $products,
-            ]);
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => $e->getMessage(),
-            ]);
-        }
-    }
+    
 
     public function getBestSellingProducts(Request $request)
     {

@@ -15,8 +15,6 @@ class Order extends Model
         'delivery_info_id',
         'order_status',
         'note',
-        'payment_method',
-        'paid',
     ];
 
     public function customer()

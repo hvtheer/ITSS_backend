@@ -34,38 +34,42 @@ class OrderController extends Controller
                 'customer_id' => 'required|exists:customers,id',
                 'shop_id' => 'required|exists:shops,id',
                 'delivery_info_id' => 'nullable|exists:delivery_infos,id',
+                'order_status' => 'required|in:pending,accepted,not accepted',
                 'note' => 'nullable',
-                'payment_method' => 'nullable',
-                'paid' => 'nullable',
                 'order_items' => 'required|array',
+                'order_items.*.id' => 'nullable|exists:order_items,id',
                 'order_items.*.product_coupon_id' => 'nullable|exists:product_coupons,id',
-                'order_items.*.product_id' => [
-                    'required',
-                    Rule::exists('products', 'id')->where(function ($query) use ($request) {
-                        $query->where('shop_id', $request->input('shop_id'));
-                    }),
-                ],
+                'order_items.*.product_id' => 'required|exists:products,id',
                 'order_items.*.quantity' => 'required|integer',
             ]);
-            $validatedData['status'] = 'pending';
-            $order = Order::create($validatedData);
+
+            $order = Order::create([
+                'customer_id' => $request->input('customer_id'),
+                'shop_id' => $request->input('shop_id'),
+                'delivery_info_id' => $request->input('delivery_info_id'),
+                'order_status' => 'pending',
+                'note' => $request->input('note'),
+            ]);
 
             foreach ($validatedData['order_items'] as $itemData) {
-                $order->orderItems()->create([
-                    'product_coupon_id' => $itemData['product_coupon_id'],
+                OrderItem::create([
+                    'order_id' => $order->id,
+                    'product_coupon_id' => $itemData['coupon_id'],
                     'product_id' => $itemData['product_id'],
                     'quantity' => $itemData['quantity'],
                 ]);
-                $product = Product::findOrFail($itemData['product_id']);
-                $product->updateStockQuantity($itemData['quantity']);
-            }            
+            }
+            // Create the invoice
+            $invoice = new Invoice([
+                'order_id' => $order->id,
+                'payment_method' => $request->input('payment_method'),
+                'payment_status' => $request->input('payment_status'),
+            ]);
 
-            $invoice = new Invoice();
-            $invoice->order_id = $order->id;
-            $invoice->save();
-    
-            // Update the invoice's fields
+            // Calculate total amount payable and fill the invoice fields
             $invoice->calculateTotalAmountPayable();
+
+            // Save the invoice
             $invoice->save();
             return response()->json(['success' => true, 'data' => $order->load('orderItems')], 201);
         } catch (\Exception $e) {

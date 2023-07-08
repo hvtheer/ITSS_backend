@@ -16,7 +16,7 @@ class DeliveryInfoFactory extends Factory
             'numberPhone' => $this->faker->numerify('##########'),
             'note' => $this->faker->text(200),
             'address' => $this->faker->address,
-            'shipping_fee' => $this->faker->randomFloat(2, 0, 100),
+            'shipping_fee' => '30000',
         ];
     }
 }

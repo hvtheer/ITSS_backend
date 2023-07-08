@@ -15,7 +15,7 @@ class ProductCouponFactory extends Factory
     {
         return [
             'product_id' => Product::inRandomOrder()->first()->id,
-            'product_coupon_id' => Coupon::inRandomOrder()->first()->id,
+            'coupon_id' => Coupon::inRandomOrder()->first()->id,
         ];
     }
 }

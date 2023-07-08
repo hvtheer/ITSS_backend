@@ -18,7 +18,7 @@ class ShopFactory extends Factory
             'description' => $this->faker->paragraph,
             'address' => $this->faker->address,
             'phone_number' => $this->faker->phoneNumber,
-            'shop_logo' => null,
+            'shop_logo' => $this->faker->imageUrl(),
         ];
     }
 }

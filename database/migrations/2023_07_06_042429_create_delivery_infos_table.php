@@ -14,7 +14,7 @@ class CreateDeliveryInfosTable extends Migration
             $table->string('numberPhone', 10);
             $table->string('note', 200)->nullable();
             $table->string('address', 100);
-            $table->decimal('shipping_fee', 8, 2);
+            $table->decimal('shipping_fee', 8, 2)->default('30000');
             $table->timestamps();
         });
     }

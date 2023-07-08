@@ -11,24 +11,21 @@ class Invoice extends Model
 
     protected $fillable = [
         'order_id',
-        'user_coupon_id',
+        'customer_coupon_id',
         'total_amount',
         'total_amount_decreased',
         'total_amount_payable',
+        'payment_method',
+        'payment_status',
     ];
 
-    protected $attributes = [
-        'total_amount' => 0,
-        'total_amount_decreased' => 0,
-        'total_amount_payable' => 0,
-    ];
 
     public function order()
     {
         return $this->belongsTo(Order::class);
     }
 
-    public function userCoupon()
+    public function customerCoupon()
     {
         return $this->belongsTo(UserCoupon::class);
     }

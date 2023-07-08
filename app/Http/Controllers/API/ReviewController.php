@@ -7,6 +7,7 @@ use App\Models\Review;
 use App\Models\Product;
 use App\Models\OrderItem;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class ReviewController extends Controller
 {
@@ -31,7 +32,7 @@ class ReviewController extends Controller
             $validatedData = $request->validate([
                 'product_id' => 'required|exists:products,id',
                 'order_id' => 'required|exists:orders,id',
-                'customer_id' => 'required|exists:customers,id',
+                // 'customer_id' => 'required|exists:customers,id',
                 'rating' => 'required|integer|min:1|max:5',
                 'review_text' => 'required',
             ]);
@@ -55,6 +56,7 @@ class ReviewController extends Controller
             }
 
             $review = Review::create($validatedData);
+            $review->customer_id = Auth::user()->customer->id;
             $product = Product::findOrFail($review->product_id);
             $product->calculateAverageRating();
             return response()->json(['success' => true, 'data' => $review], 201);

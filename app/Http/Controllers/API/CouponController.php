@@ -2,18 +2,36 @@
 
 namespace App\Http\Controllers\API;
 
-use App\Http\Controllers\Controller;
 use App\Models\Coupon;
+use App\Models\CustomerCoupon;
 use App\Models\ProductCoupon;
-use App\Models\UserCoupon;
 use Illuminate\Http\Request;
+use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Auth;
+use App\Models\Role;
 
 class CouponController extends Controller
 {
     public function index()
     {
         try {
-            $coupons = Coupon::all();
+            $authenticatedUser = Auth::user();
+            
+            // Check if the user has the required role
+            if (!$authenticatedUser->roleUser ||
+                !in_array($authenticatedUser->roleUser->role_id, [Role::ROLE_ADMIN, Role::ROLE_SELLER, Role::ROLE_CUSTOMER])) {
+                throw new \Exception('You are not authorized to access the coupons.');
+            }
+
+            if ($authenticatedUser->roleUser->role_id === Role::ROLE_ADMIN) {
+                $coupons = Coupon::all();
+            } elseif ($authenticatedUser->roleUser->role_id === Role::ROLE_SELLER) {
+                $coupons = Coupon::where('created_by', $authenticatedUser->id)->get();
+            } else {
+                $coupons = Coupon::whereHas('customerCoupons', function ($query) use ($authenticatedUser) {
+                    $query->where('customer_id', $authenticatedUser->customer->id);
+                })->get();
+            }
 
             if ($coupons->isEmpty()) {
                 return response()->json(['success' => false, 'message' => 'No coupons found']);
@@ -25,9 +43,18 @@ class CouponController extends Controller
         }
     }
 
+
     public function store(Request $request)
     {
         try {
+            $authenticatedUser = Auth::user();
+
+            // Check if the user has the required role
+            if (!$authenticatedUser->roleUser ||
+                !in_array($authenticatedUser->roleUser->role_id, [Role::ROLE_ADMIN, Role::ROLE_SELLER])) {
+                throw new \Exception('You are not authorized to create a coupon.');
+            }
+
             $validatedData = $request->validate([
                 'code' => 'required',
                 'type' => 'required|in:fixed,percent',
@@ -39,7 +66,6 @@ class CouponController extends Controller
                 'product_coupons.*.product_id' => 'required|exists:products,id',
                 'user_coupons.*.user_id' => 'required|exists:users,id',
                 'user_coupons.*.is_used' => 'required|boolean',
-                'user_coupons.*.used_date' => 'nullable|date',
             ]);
 
             $coupon = Coupon::create($validatedData);
@@ -55,8 +81,8 @@ class CouponController extends Controller
             // Create user coupons
             if (isset($validatedData['user_coupons'])) {
                 foreach ($validatedData['user_coupons'] as $userCouponData) {
-                    $userCoupon = new UserCoupon($userCouponData);
-                    $coupon->userCoupons()->save($userCoupon);
+                    $userCoupon = new CustomerCoupon($userCouponData);
+                    $coupon->customerCoupons()->save($userCoupon);
                 }
             }
 
@@ -69,7 +95,17 @@ class CouponController extends Controller
     public function show(Coupon $coupon)
     {
         try {
-            $coupon = $coupon->with('productCoupons', 'userCoupons')->get();
+            $authenticatedUser = Auth::user();
+
+            // Check if the user has the required role
+            if (!$authenticatedUser->roleUser ||
+                ($authenticatedUser->roleUser->role_id !== Role::ROLE_ADMIN &&
+                $coupon->created_by !== $authenticatedUser->shop->id &&
+                !$coupon->customerCoupons()->where('customer_id', $authenticatedUser->customer->id)->exists())) {
+                throw new \Exception('You are not authorized to view this coupon.');
+            }
+
+            $coupon = $coupon->load('productCoupons', 'customerCoupons');
             return response()->json(['success' => true, 'data' => $coupon]);
         } catch (\Exception $e) {
             return response()->json(['success' => false, 'message' => $e->getMessage()]);
@@ -79,6 +115,16 @@ class CouponController extends Controller
     public function update(Request $request, Coupon $coupon)
     {
         try {
+            $authenticatedUser = Auth::user();
+
+            // Check if the user has the required role
+            if (!$authenticatedUser->roleUser ||
+                !in_array($authenticatedUser->roleUser->role_id, [Role::ROLE_ADMIN, Role::ROLE_SELLER]) ||
+                ($authenticatedUser->roleUser->role_id === Role::ROLE_SELLER &&
+                $coupon->created_by !== $authenticatedUser->id)) {
+                throw new \Exception('You are not authorized to update this coupon.');
+            }
+
             $validatedData = $request->validate([
                 'code' => 'required',
                 'type' => 'required|in:fixed,percent',
@@ -90,7 +136,6 @@ class CouponController extends Controller
                 'product_coupons.*.product_id' => 'required|exists:products,id',
                 'user_coupons.*.user_id' => 'required|exists:users,id',
                 'user_coupons.*.is_used' => 'required|boolean',
-                'user_coupons.*.used_date' => 'nullable|date',
             ]);
 
             $coupon->update($validatedData);
@@ -106,14 +151,14 @@ class CouponController extends Controller
 
             // Update user coupons
             if (isset($validatedData['user_coupons'])) {
-                $coupon->userCoupons()->delete();
+                $coupon->customerCoupons()->delete();
                 foreach ($validatedData['user_coupons'] as $userCouponData) {
-                    $userCoupon = new UserCoupon($userCouponData);
-                    $coupon->userCoupons()->save($userCoupon);
+                    $userCoupon = new CustomerCoupon($userCouponData);
+                    $coupon->customerCoupons()->save($userCoupon);
                 }
             }
 
-            return response()->json(['success' => true, 'data' => $coupon]);
+           return response()->json(['success' => true, 'data' => $coupon]);
         } catch (\Exception $e) {
             return response()->json(['success' => false, 'message' => $e->getMessage()]);
         }
@@ -122,8 +167,18 @@ class CouponController extends Controller
     public function destroy(Coupon $coupon)
     {
         try {
+            $authenticatedUser = Auth::user();
+
+            // Check if the user has the required role
+            if (!$authenticatedUser->roleUser ||
+                !in_array($authenticatedUser->roleUser->role_id, [Role::ROLE_ADMIN, Role::ROLE_SELLER]) ||
+                ($authenticatedUser->roleUser->role_id === Role::ROLE_SELLER &&
+                $coupon->created_by !== $authenticatedUser->id)) {
+                throw new \Exception('You are not authorized to delete this coupon.');
+            }
+
             $coupon->productCoupons()->delete();
-            $coupon->userCoupons()->delete();
+            $coupon->customerCoupons()->delete();
             $coupon->delete();
 
             return response()->json(['success' => true], 204);
