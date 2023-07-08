@@ -2,18 +2,34 @@
 
 namespace App\Http\Controllers\API;
 
-use App\Http\Controllers\Controller;
+use App\Models\Role;
 use App\Models\Product;
 use App\Models\ProductImage;
-use App\Models\ProductAttribute;
 use Illuminate\Http\Request;
+use App\Models\ProductAttribute;
+use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Auth;
 
 class ProductController extends Controller
 {
     public function index()
     {
         try {
-            $products = Product::all();
+            $authenticatedUser = Auth::user();
+
+            // Check if the user has the required role
+            if (!$authenticatedUser->roleUser ||
+                !in_array($authenticatedUser->roleUser->role_id, [Role::ROLE_ADMIN, Role::ROLE_SELLER, Role::ROLE_CUSTOMER])) {
+                throw new \Exception('You are not authorized to access the products.');
+            }
+
+            if ($authenticatedUser->roleUser->role_id === Role::ROLE_ADMIN) {
+                $products = Product::all();
+            } elseif ($authenticatedUser->roleUser->role_id === Role::ROLE_SELLER) {
+                $products = Product::where('shop_id', $authenticatedUser->shop->id)->get();
+            } else {
+                $products = Product::all();
+            }
 
             if ($products->isEmpty()) {
                 return response()->json(['success' => false, 'message' => 'No products found']);
@@ -28,6 +44,14 @@ class ProductController extends Controller
     public function store(Request $request)
     {
         try {
+            $authenticatedUser = Auth::user();
+
+            // Check if the user has the required role
+            if (!$authenticatedUser->roleUser ||
+                !in_array($authenticatedUser->roleUser->role_id, [Role::ROLE_ADMIN, Role::ROLE_SELLER])) {
+                throw new \Exception('You are not authorized to create a product.');
+            }
+
             $validatedData = $request->validate([
                 'slug' => 'required|unique:products',
                 'shop_id' => 'required|exists:shops,id',
@@ -81,6 +105,16 @@ class ProductController extends Controller
     public function update(Request $request, Product $product)
     {
         try {
+            $authenticatedUser = Auth::user();
+
+            // Check if the user has the required role
+            if (!$authenticatedUser->roleUser ||
+                !in_array($authenticatedUser->roleUser->role_id, [Role::ROLE_ADMIN, Role::ROLE_SELLER]) ||
+                ($authenticatedUser->roleUser->role_id === Role::ROLE_SELLER &&
+                $product->shop_id !== $authenticatedUser->id)) {
+                throw new \Exception('You are not authorized to update this product.');
+            }
+
             $validatedData = $request->validate([
                 'slug' => 'required|unique:products,slug,' . $product->id,
                 'shop_id' => 'required|exists:shops,id',
@@ -129,6 +163,16 @@ class ProductController extends Controller
     public function destroy(Product $product)
     {
         try {
+            $authenticatedUser = Auth::user();
+
+            // Check if the user has the required role
+            if (!$authenticatedUser->roleUser ||
+                !in_array($authenticatedUser->roleUser->role_id, [Role::ROLE_ADMIN, Role::ROLE_SELLER]) ||
+                ($authenticatedUser->roleUser->role_id === Role::ROLE_SELLER &&
+                $product->shop_id !== $authenticatedUser->id)) {
+                throw new \Exception('You are not authorized to delete this product.');
+            }
+
             ProductImage::where('product_id', $product->id)->delete();
             ProductAttribute::where('product_id', $product->id)->delete();
             $product->delete();
@@ -137,11 +181,11 @@ class ProductController extends Controller
             return response()->json(['success' => false, 'message' => $e->getMessage()]);
         }
     }
-
+    
     public function filterProducts(Request $request)
     {
-        $minPrice = $request->input('min');
-        $maxPrice = $request->input('max');
+        $minPrice = $request->input('minPrice');
+        $maxPrice = $request->input('maxPrice');
         $minRating = $request->input('minRating');
     
         try {
@@ -170,7 +214,7 @@ class ProductController extends Controller
     {
         try {
             $products = Product::orderBy('sold_quantity', 'desc')
-                ->limit(10)
+                ->limit(6)
                 ->get();
 
             return response()->json(['success' => true, 'data' => $products]);
@@ -182,7 +226,7 @@ class ProductController extends Controller
     public function getLatestProducts(Request $request)
     {
         try {
-            $products = Product::latest()->take(10)->get();
+            $products = Product::latest()->take(6)->get();
 
             return response()->json(['success' => true, 'data' => $products]);
         } catch (\Exception $e) {

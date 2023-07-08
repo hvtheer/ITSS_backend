@@ -136,4 +136,24 @@ class UserController extends Controller
             return response()->json(['success' => false, 'message' => $e->getMessage()]);
         }
     }
+
+    public function getCurrent()
+    {
+        try {
+            $user = Auth::user();
+
+            if($user) {
+                if($user->roleUser->role_id === Role::ROLE_SELLER) {
+                    $data = $user->load('shop');
+                } elseif($user->roleUser->role_id === Role::ROLE_CUSTOMER) {
+                    $data = $user->load('customer');
+                } else {
+                    $data = $user;
+                }
+                return response()->json(['success' => true, 'data' => $data]);
+            }
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()]);
+        }
+    }
 }

@@ -35,7 +35,7 @@ class LoginController extends Controller
         }
 
         $user = Auth::user();
-        $roleUser = RoleUser::where('user_id', $user->id)->first();
+        $roleUser = $user->roleUser;
 
         if (!$roleUser || !in_array($roleUser->role_id, [Role::ROLE_ADMIN, Role::ROLE_SELLER, Role::ROLE_CUSTOMER])) {
             return response()->json(['error' => 'Unauthorized'], 401);
