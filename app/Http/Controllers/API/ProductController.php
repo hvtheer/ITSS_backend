@@ -15,27 +15,12 @@ class ProductController extends Controller
     public function index()
     {
         try {
-            $authenticatedUser = Auth::user();
-
-            // Check if the user has the required role
-            if (!$authenticatedUser->roleUser ||
-                !in_array($authenticatedUser->roleUser->role_id, [Role::ROLE_ADMIN, Role::ROLE_SELLER, Role::ROLE_CUSTOMER])) {
-                throw new \Exception('You are not authorized to access the products.');
-            }
-
-            if ($authenticatedUser->roleUser->role_id === Role::ROLE_ADMIN) {
-                $products = Product::all();
-            } elseif ($authenticatedUser->roleUser->role_id === Role::ROLE_SELLER) {
-                $products = Product::where('shop_id', $authenticatedUser->shop->id)->get();
-            } else {
-                $products = Product::all();
-            }
-
+            $products = Product::with('shop:id,shop_name,shop_logo', 'category:id,name,slug')->get();
             if ($products->isEmpty()) {
                 return response()->json(['success' => false, 'message' => 'No products found']);
             }
 
-            return response()->json(['success' => true, 'data' => $products]);
+            return response()->json(['success' => true, 'data' => $products->makeHidden('category_id','shop_id')]);
         } catch (\Exception $e) {
             return response()->json(['success' => false, 'message' => $e->getMessage()]);
         }
@@ -189,7 +174,8 @@ class ProductController extends Controller
         $minRating = $request->input('minRating');
     
         try {
-            $products = Product::where('price', '>=', $minPrice)
+            $products = Product::with('shop:id,shop_name,shop_logo', 'category:id,name,slug')
+                ->where('price', '>=', $minPrice)
                 ->where('price', '<=', $maxPrice)
                 ->where(function ($query) use ($minRating) {
                     $query->where('avg_rating', '>=', $minRating)
@@ -199,7 +185,7 @@ class ProductController extends Controller
     
             return response()->json([
                 'success' => true,
-                'data' => $products,
+                'data' => $products->makeHidden('category_id','shop_id'),
             ]);
         } catch (\Exception $e) {
             return response()->json([
@@ -213,11 +199,12 @@ class ProductController extends Controller
     public function getBestSellingProducts(Request $request)
     {
         try {
-            $products = Product::orderBy('sold_quantity', 'desc')
-                ->limit(6)
+            $products = Product::with('shop:id,shop_name,shop_logo', 'category:id,name,slug')
+                ->orderBy('sold_quantity', 'desc')
+                ->limit(10)
                 ->get();
 
-            return response()->json(['success' => true, 'data' => $products]);
+                return response()->json(['success' => true, 'data' => $products->makeHidden('category_id','shop_id')]);
         } catch (\Exception $e) {
             return response()->json(['success' => false, 'message' => $e->getMessage()]);
         }
@@ -226,9 +213,9 @@ class ProductController extends Controller
     public function getLatestProducts(Request $request)
     {
         try {
-            $products = Product::latest()->take(6)->get();
+            $products = Product::with('shop:id,shop_name,shop_logo', 'category:id,name,slug')->latest()->take(10)->get();
 
-            return response()->json(['success' => true, 'data' => $products]);
+            return response()->json(['success' => true, 'data' => $products->makeHidden('category_id','shop_id')]);
         } catch (\Exception $e) {
             return response()->json(['success' => false, 'message' => $e->getMessage()]);
         }

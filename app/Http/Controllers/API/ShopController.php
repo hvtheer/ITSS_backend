@@ -112,11 +112,11 @@ class ShopController extends Controller
     public function topShopsBySoldQuantity()
     {
         try {
-            $topShops = Shop::select('shops.id', 'shops.shop_name', 'shops.address', 'shops.user_id')
+            $topShops = Shop::select('shops.id', 'shops.shop_name', 'shops.address', 'shops.shop_logo', 'shops.phone_number')
                 ->join('products', 'shops.id', '=', 'products.shop_id')
-                ->groupBy('shops.id', 'shops.shop_name', 'shops.address', 'shops.user_id')
+                ->groupBy('shops.id', 'shops.shop_name', 'shops.address', 'shops.shop_logo', 'shops.phone_number')
                 ->orderByRaw('SUM(products.sold_quantity) DESC')
-                ->limit(10)
+                ->limit(6)
                 ->get();
 
             return response()->json(['success' => true, 'data' => $topShops]);
