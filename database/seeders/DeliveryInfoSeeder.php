@@ -9,6 +9,6 @@ class DeliveryInfoSeeder extends Seeder
 {
     public function run()
     {
-        DeliveryInfo::factory()->count(10)->create();
+        DeliveryInfo::factory()->count(40)->create();
     }
 }

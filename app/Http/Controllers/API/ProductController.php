@@ -13,13 +13,14 @@ class ProductController extends Controller
     public function index()
     {
         try {
-            $products = Product::all();
+            $products = $products = Product::with('shop:id,shop_name,shop_logo', 'category:id,name,slug')->get();
 
             if ($products->isEmpty()) {
                 return response()->json(['success' => false, 'message' => 'No products found']);
             }
 
-            return response()->json(['success' => true, 'data' => $products]);
+            return response()->json(['success' => true, 'data' => $products->makeHidden('category_id', 'shop_id')]);
+
         } catch (\Exception $e) {
             return response()->json(['success' => false, 'message' => $e->getMessage()]);
         }
@@ -169,11 +170,11 @@ class ProductController extends Controller
     public function getBestSellingProducts(Request $request)
     {
         try {
-            $products = Product::orderBy('sold_quantity', 'desc')
-                ->limit(10)
-                ->get();
-
-            return response()->json(['success' => true, 'data' => $products]);
+            $products = Product::with('shop:id,shop_name,shop_logo', 'category:id,name,slug')
+            ->orderBy('sold_quantity', 'desc')
+            ->limit(10)
+            ->get();
+            return response()->json(['success' => true, 'data' => $products->makeHidden('category_id', 'shop_id')]);
         } catch (\Exception $e) {
             return response()->json(['success' => false, 'message' => $e->getMessage()]);
         }
@@ -182,9 +183,10 @@ class ProductController extends Controller
     public function getLatestProducts(Request $request)
     {
         try {
-            $products = Product::latest()->take(10)->get();
+            $products = Product::with('shop:id,shop_name,shop_logo', 'category:id,name,slug')
+            ->latest()->take(10)->get();
 
-            return response()->json(['success' => true, 'data' => $products]);
+            return response()->json(['success' => true, 'data' => $products->makeHidden('category_id', 'shop_id')]);
         } catch (\Exception $e) {
             return response()->json(['success' => false, 'message' => $e->getMessage()]);
         }
