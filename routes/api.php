@@ -18,15 +18,17 @@ use Illuminate\Support\Facades\Route;
 Route::post('/register', 'App\Http\Controllers\Auth\RegisterController@register');
 Route::post('/login', 'App\Http\Controllers\Auth\LoginController@login');
 
+
+Route::get('/products/filter', 'App\Http\Controllers\API\ProductController@filterProducts');
+Route::get('/products/best-sellers', 'App\Http\Controllers\API\ProductController@getBestSellingProducts');
+Route::get('/shops/top', 'App\Http\Controllers\API\ShopController@topShopsBySoldQuantity');
+Route::get('/shops/{shop}', 'App\Http\Controllers\API\ShopController@show');
+Route::get('/products/latest', 'App\Http\Controllers\API\ProductController@getLatestProducts');
+Route::resource('/categories', 'App\Http\Controllers\API\CategoryController')->only('index','show');
+
 // Routes accessible to all authenticated users
 Route::middleware('auth:api')->prefix('v1')->group(function () {
 
-    Route::get('/products/filter', 'App\Http\Controllers\API\ProductController@filterProducts');
-    Route::get('/products/best-sellers', 'App\Http\Controllers\API\ProductController@getBestSellingProducts');
-    Route::get('/shops/top', 'App\Http\Controllers\API\ShopController@topShopsBySoldQuantity');
-    Route::get('/shops/{shop}', 'App\Http\Controllers\API\ShopController@show');
-    Route::get('/products/latest', 'App\Http\Controllers\API\ProductController@getLatestProducts');
-    Route::resource('/categories', 'App\Http\Controllers\API\CategoryController')->only('index','show');
     Route::get('/current', 'App\Http\Controllers\API\UserController@getCurrent');
 
     // Routes accessible to admins
