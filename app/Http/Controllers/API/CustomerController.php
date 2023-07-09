@@ -10,16 +10,28 @@ use Illuminate\Support\Facades\Auth;
 
 class CustomerController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
+        // Get the current page from the request, default to 1
+        $page = $request->input('page', 1);
+        // Get the perPage value from the request, default to 15
+        $perPage = $request->input('perPage', 15);
+    
         try {
-            $customers = Customer::all();
-
+            $totalCustomers = Customer::count();
+    
+            $customers = Customer::paginate($perPage, ['*'], 'page', $page);
+    
             if ($customers->isEmpty()) {
                 return response()->json(['success' => false, 'message' => 'No customers found']);
             }
-
-            return response()->json(['success' => true, 'data' => $customers]);
+    
+            return response()->json([
+                'success' => true,
+                'data' => $customers->makeHidden(['created_at', 'updated_at']),
+                'totalCustomers' => $totalCustomers,
+                'perPage' => $perPage, // Include perPage value in the response
+            ]);
         } catch (\Exception $e) {
             return response()->json(['success' => false, 'message' => $e->getMessage()]);
         }
