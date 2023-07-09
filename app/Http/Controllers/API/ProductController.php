@@ -12,19 +12,66 @@ use Illuminate\Support\Facades\Auth;
 
 class ProductController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         try {
+            $minPrice = $request->input('minPrice');
+            $maxPrice = $request->input('maxPrice');
+            $minRating = $request->input('minRating');
+    
+            if ($minPrice !== null || $maxPrice !== null || $minRating !== null) {
+                return $this->filterProducts($request);
+            }
+    
             $products = Product::with('shop:id,shop_name,shop_logo', 'category:id,name,slug')->get();
+    
             if ($products->isEmpty()) {
                 return response()->json(['success' => false, 'message' => 'No products found']);
             }
-
+    
             return response()->json(['success' => true, 'data' => $products->makeHidden('category_id','shop_id')]);
         } catch (\Exception $e) {
             return response()->json(['success' => false, 'message' => $e->getMessage()]);
         }
     }
+    
+    public function filterProducts(Request $request)
+    {
+        $minPrice = $request->input('minPrice');
+        $maxPrice = $request->input('maxPrice');
+        $minRating = $request->input('minRating');
+    
+        try {
+            $query = Product::with('shop:id,shop_name,shop_logo', 'category:id,name,slug');
+    
+            if ($minPrice !== null) {
+                $query->where('price', '>=', $minPrice);
+            }
+    
+            if ($maxPrice !== null) {
+                $query->where('price', '<=', $maxPrice);
+            }
+    
+            if ($minRating !== null) {
+                $query->where(function ($q) use ($minRating) {
+                    $q->where('avg_rating', '>=', $minRating)
+                      ->orWhereNull('avg_rating');
+                });
+            }
+    
+            $products = $query->get();
+    
+            return response()->json([
+                'success' => true,
+                'data' => $products->makeHidden('category_id', 'shop_id'),
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage(),
+            ]);
+        }
+    }    
 
     public function store(Request $request)
     {
@@ -164,34 +211,6 @@ class ProductController extends Controller
             return response()->json(['success' => true], 204);
         } catch (\Exception $e) {
             return response()->json(['success' => false, 'message' => $e->getMessage()]);
-        }
-    }
-    
-    public function filterProducts(Request $request)
-    {
-        $minPrice = $request->input('minPrice');
-        $maxPrice = $request->input('maxPrice');
-        $minRating = $request->input('minRating');
-    
-        try {
-            $products = Product::with('shop:id,shop_name,shop_logo', 'category:id,name,slug')
-                ->where('price', '>=', $minPrice)
-                ->where('price', '<=', $maxPrice)
-                ->where(function ($query) use ($minRating) {
-                    $query->where('avg_rating', '>=', $minRating)
-                          ->orWhereNull('avg_rating');
-                })
-                ->get();
-    
-            return response()->json([
-                'success' => true,
-                'data' => $products->makeHidden('category_id','shop_id'),
-            ]);
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => $e->getMessage(),
-            ]);
         }
     }
     

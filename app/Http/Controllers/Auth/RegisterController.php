@@ -20,6 +20,7 @@ class RegisterController extends Controller
             'username' => 'required|unique:users',
             'email' => 'required|email|unique:users',
             'password' => 'required|min:4',
+            'role_id' => 'required|in:2,3'
         ]);
 
         if ($validator->fails()) {
@@ -34,7 +35,7 @@ class RegisterController extends Controller
 
         $roleUser = RoleUser::create([
             'user_id' => $user->id,
-            'role_id' => Role::ROLE_CUSTOMER,
+            'role_id' => $request->input('role_id'),
             'status' => 'approved',
         ]);
 

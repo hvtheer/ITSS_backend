@@ -74,7 +74,7 @@ class OrderController extends Controller
                 'order_items.*.quantity' => 'required|integer',
                 'customer_coupon_id' => 'nullable',
                 'payment_method' => 'required|in:cod,card',
-                'payment_status' => 'required:paid,unpaid',
+                // 'payment_status' => 'required:paid,unpaid',
             ]);
     
             // Set the customer_id to the authenticated user's customer ID if not provided
@@ -103,7 +103,7 @@ class OrderController extends Controller
                 'total_amount_payable' => 0,
                 'customer_coupon_id' => $validatedData['customer_coupon_id'],
                 'payment_method' => $validatedData['payment_method'],
-                'payment_status' => $validatedData['payment_status'],
+                'payment_status' => 'unpaid',
             ]);
     
             // Calculate and set the total amount payable
@@ -138,7 +138,7 @@ class OrderController extends Controller
     }
     
 
-    public function update(Request $request, Order $order)
+    public function update(Request $request, $order)
     {
         try {
             $authenticatedUser = Auth::user();
@@ -154,35 +154,58 @@ class OrderController extends Controller
                 // 'customer_id' => 'required|exists:customers,id',
                 'shop_id' => 'required|exists:shops,id',
                 'delivery_info_id' => 'nullable|exists:delivery_infos,id',
-                'order_status' => 'required|in:pending,accepted,not accepted',
                 'note' => 'nullable',
-                'payment_method' => 'nullable',
-                'paid' => 'nullable',
                 'order_items' => 'required|array',
                 'order_items.*.id' => 'nullable|exists:order_items,id',
                 'order_items.*.product_coupon_id' => 'nullable|exists:product_coupons,id',
-                'order_items.*.product_id' => 'required|exists:products,id',
+                'order_items.*.product_id' => [
+                    'required',
+                    Rule::exists('products', 'id')->where(function ($query) use ($request) {
+                        $query->where('shop_id', $request->input('shop_id'));
+                    }),
+                ],
                 'order_items.*.quantity' => 'required|integer',
+                'customer_coupon_id' => 'nullable',
+                'payment_method' => 'required|in:cod,card',
+                'payment_status' => 'required:paid,unpaid',
             ]);
     
+            // Set the customer_id to the authenticated user's customer ID if not provided
+            if (!isset($validatedData['customer_id'])) {
+                $validatedData['customer_id'] = $authenticatedUser->customer->id;
+            }
+    
+            $order = Order::findOrFail($order);
+    
+            // Update the order with the validated data
             $order->update($validatedData);
     
+            // Delete existing order items and create new ones
             $order->orderItems()->delete();
-    
             foreach ($validatedData['order_items'] as $itemData) {
-                OrderItem::create([
-                    'order_id' => $order->id,
-                    'product_coupon_id' => $itemData['coupon_id'],
+                $order->orderItems()->create([
+                    'product_coupon_id' => $itemData['product_coupon_id'],
                     'product_id' => $itemData['product_id'],
                     'quantity' => $itemData['quantity'],
                 ]);
+                $product = Product::findOrFail($itemData['product_id']);
+                $product->updateStockQuantity($itemData['quantity']);
             }
     
-            return response()->json(['success' => true, 'data' => $order]);
+            // Update the invoice related fields
+            $invoice = $order->invoice;
+            $invoice->customer_coupon_id = $validatedData['customer_coupon_id'];
+            $invoice->payment_method = $validatedData['payment_method'];
+            $invoice->payment_status = $validatedData['payment_status'];
+            $invoice->calculateTotalAmountPayable();
+            $invoice->save();
+    
+            return response()->json(['success' => true, 'data' => $invoice]);
         } catch (\Exception $e) {
             return response()->json(['success' => false, 'message' => $e->getMessage()]);
         }
     }
+    
     
     public function destroy(Order $order)
     {
