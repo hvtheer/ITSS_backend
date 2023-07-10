@@ -58,7 +58,7 @@ class InvoiceController extends Controller
             }
 
             // Check if the user is authorized to update this specific invoice
-            if (($authenticatedUser->roleUser->role_id === Role::ROLE_CUSTOMER && $invoice->customer_id !== $authenticatedUser->customer->id)) {
+            if (($authenticatedUser->roleUser->role_id === Role::ROLE_CUSTOMER && $invoice->order->customer_id !== $authenticatedUser->customer->id)) {
                 throw new \Exception('You are not authorized to update this invoice.');
             }
 

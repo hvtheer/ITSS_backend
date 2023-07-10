@@ -33,22 +33,17 @@ class RegisterController extends Controller
             'password' => Hash::make($request->input('password')),
         ]);
 
-        $roleUser = RoleUser::create([
-            'user_id' => $user->id,
+        $roleUser = $user->roleUser()->create([
             'role_id' => $request->input('role_id'),
             'status' => 'approved',
         ]);
 
         if ($roleUser->role_id === Role::ROLE_CUSTOMER) {
-            $customer = Customer::create([
-                'user_id' => $user->id,
-            ]);
+            $customer = $user->customer()->create();
         }
 
         if ($roleUser->role_id === Role::ROLE_SELLER) {
-            $shop = Shop::create([
-                'user_id' => $user->id,
-            ]);
+            $shop = $user->shop()->create();
         }
 
         return response()->json(['success' => true, 'message' => 'User registered successfully']);

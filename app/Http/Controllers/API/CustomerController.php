@@ -12,7 +12,6 @@ class CustomerController extends Controller
 {
     public function index(Request $request)
     {
-<<<<<<< HEAD
     try {
     $search = $request->input('search');
     $page = $request->input('page', 1); // get the page number or default to 1
@@ -44,32 +43,8 @@ class CustomerController extends Controller
     } catch (\Exception $e) {
     return response()->json(['success' => false, 'message' => $e->getMessage()]);
     }
-=======
-        // Get the current page from the request, default to 1
-        $page = $request->input('page', 1);
-        // Get the perPage value from the request, default to 15
-        $perPage = $request->input('perPage', 15);
-    
-        try {
-            $totalCustomers = Customer::count();
-    
-            $customers = Customer::paginate($perPage, ['*'], 'page', $page);
-    
-            if ($customers->isEmpty()) {
-                return response()->json(['success' => false, 'message' => 'No customers found']);
-            }
-    
-            return response()->json([
-                'success' => true,
-                'data' => $customers->makeHidden(['created_at', 'updated_at']),
-                'totalCustomers' => $totalCustomers,
-                'perPage' => $perPage, // Include perPage value in the response
-            ]);
-        } catch (\Exception $e) {
-            return response()->json(['success' => false, 'message' => $e->getMessage()]);
-        }
->>>>>>> 2a4a690eba1220dc7697f462dba584222da56b2d
-    }
+}
+
 
     public function store(Request $request)
     {
