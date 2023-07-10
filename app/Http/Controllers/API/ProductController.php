@@ -14,6 +14,7 @@ class ProductController extends Controller
 {
     public function index(Request $request)
     {
+<<<<<<< HEAD
     
     $minPrice = $request->input('minPrice');
     $maxPrice = $request->input('maxPrice');
@@ -50,7 +51,48 @@ class ProductController extends Controller
     } catch (\Exception $e) {
     return response()->json(['success' => false, 'message' => $e->getMessage()]);
     }
+=======
+        $minPrice = $request->input('minPrice');
+        $maxPrice = $request->input('maxPrice');
+        $minRating = $request->input('minRating');
+        $page = $request->input('page', 1);
+        $perPage = $request->input('perPage', 15); // Get perPage value from the request, default to 15
+    
+        try {
+            $query = Product::with('shop:id,shop_name,shop_logo', 'category:id,name,slug')
+                ->when($minPrice, function ($query, $minPrice) {
+                    return $query->where('price', '>=', $minPrice);
+                })
+                ->when($maxPrice, function ($query, $maxPrice) {
+                    return $query->where('price', '<=', $maxPrice);
+                })
+                ->when($minRating, function ($query, $minRating) {
+                    return $query->where(function ($subQuery) use ($minRating) {
+                        $subQuery->where('avg_rating', '>=', $minRating)
+                            ->orWhereNull('avg_rating');
+                    });
+                });
+    
+            $totalItems = $query->count();
+    
+            $products = $query->paginate($perPage, ['*'], 'page', $page);
+    
+            if ($products->isEmpty()) {
+                return response()->json(['success' => false, 'message' => 'No products found']);
+            }
+    
+            return response()->json([
+                'success' => true,
+                'data' => $products->makeHidden('category_id', 'shop_id'),
+                'totalItems' => $totalItems,
+                'perPage' => $perPage, // Include perPage value in the response
+            ]);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()]);
+        }
+>>>>>>> 2a4a690eba1220dc7697f462dba584222da56b2d
     }
+    
 
     public function store(Request $request)
     {

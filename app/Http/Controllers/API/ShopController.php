@@ -6,24 +6,38 @@ use App\Models\Role;
 use App\Models\Shop;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
+use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Facades\Auth;
 
 class ShopController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
+        // Get the current page from the request, default to 1
+        $page = $request->input('page', 1);
+        // Get the perPage value from the request, default to 15
+        $perPage = $request->input('perPage', 15);
+    
         try {
-            $shops = Shop::all();
-
+            $totalShops = Shop::count();
+    
+            $shops = Shop::paginate($perPage, ['*'], 'page', $page);
+    
             if ($shops->isEmpty()) {
                 return response()->json(['success' => false, 'message' => 'No shops found']);
             }
-
-            return response()->json(['success' => true, 'data' => $shops]);
+    
+            return response()->json([
+                'success' => true,
+                'data' => $shops->makeHidden(['created_at', 'updated_at']),
+                'totalShops' => $totalShops,
+                'perPage' => $perPage, // Include perPage value in the response
+            ]);
         } catch (\Exception $e) {
             return response()->json(['success' => false, 'message' => $e->getMessage()]);
         }
     }
+    
 
     public function store(Request $request)
     {
