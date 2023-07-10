@@ -10,19 +10,39 @@ use Illuminate\Support\Facades\Auth;
 
 class CustomerController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        try {
-            $customers = Customer::all();
-
-            if ($customers->isEmpty()) {
-                return response()->json(['success' => false, 'message' => 'No customers found']);
-            }
-
-            return response()->json(['success' => true, 'data' => $customers]);
-        } catch (\Exception $e) {
-            return response()->json(['success' => false, 'message' => $e->getMessage()]);
-        }
+    try {
+    $search = $request->input('search');
+    $page = $request->input('page', 1); // get the page number or default to 1
+    $limit = 15; // set the limit to 15
+    
+    $customers = Customer::with(['user' => function ($query) {
+    $query->select('id', 'email', 'username');
+    }])->select('name', 'phone_number', 'address', 'id','user_id', 'created_at')
+    ->orWhere('name', 'like', "%$search%")
+    ->orWhere('phone_number', 'like', "%$search%")
+    ->orWhere('address', 'like', "%$search%")
+    ->orderBy('created_at', 'desc') // order by created_at descending
+    ->paginate($limit, ['*'], 'page', $page); // paginate the data with the limit and page number
+    
+    if ($customers->isEmpty()) {
+    return response()->json(['success' => false, 'message' => 'No customers found']);
+    }
+    
+    $totalItems = Customer::with(['user' => function ($query) {
+    $query->select('id', 'email', 'username');
+    }])->select('name', 'phone_number', 'address', 'id','user_id', 'created_at')
+    ->orWhere('name', 'like', "%$search%")
+    ->orWhere('phone_number', 'like', "%$search%")
+    ->orWhere('address', 'like', "%$search%")
+    ->get() // get all customers by query without limit
+    ->count(); // count the number of customers
+    
+    return response()->json(['success' => true, 'data' => $customers, 'totalItems' => $totalItems]); // return the data and the totalItems
+    } catch (\Exception $e) {
+    return response()->json(['success' => false, 'message' => $e->getMessage()]);
+    }
     }
 
     public function store(Request $request)

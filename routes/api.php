@@ -3,9 +3,6 @@
 use App\Models\Role;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-
-use function Ramsey\Uuid\v1;
-
 /*
 |--------------------------------------------------------------------------
 | API\ Routes
@@ -17,9 +14,11 @@ use function Ramsey\Uuid\v1;
 |
 */
 
+Route::resource('/v1/products', 'App\Http\Controllers\API\ProductController');
+
 //　Routes accessible to authentication
-Route::post('/register', 'App\Http\Controllers\Auth\RegisterController@register');
-Route::post('/login', 'App\Http\Controllers\Auth\LoginController@login');
+Route::post('/v1/register', 'App\Http\Controllers\Auth\RegisterController@register');
+Route::post('/v1/login', 'App\Http\Controllers\Auth\LoginController@login');
 
 Route::prefix('v1')->group(function () {
     Route::get('/products', 'App\Http\Controllers\API\ProductController@index');
@@ -41,7 +40,7 @@ Route::prefix('v1')->group(function () {
         Route::resource('/invoices', 'App\Http\Controllers\API\InvoiceController');
         Route::resource('/orders', 'App\Http\Controllers\API\OrderController');
         Route::resource('/payment-transactions', 'App\Http\Controllers\API\PaymentTransactionController');
-        Route::resource('/products', 'App\Http\Controllers\API\ProductController')->except(['index', 'show']);
+        // Route::resource('/products', 'App\Http\Controllers\API\ProductController')->except(['index', 'show']);
         Route::resource('/reviews', 'App\Http\Controllers\API\ReviewController');
         Route::resource('/roles', 'App\Http\Controllers\API\RoleController');
         Route::resource('/delivery-info', 'App\Http\Controllers\API\DeliveryInfoController');

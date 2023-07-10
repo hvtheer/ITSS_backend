@@ -14,64 +14,43 @@ class ProductController extends Controller
 {
     public function index(Request $request)
     {
-        try {
-            $minPrice = $request->input('minPrice');
-            $maxPrice = $request->input('maxPrice');
-            $minRating = $request->input('minRating');
     
-            if ($minPrice !== null || $maxPrice !== null || $minRating !== null) {
-                return $this->filterProducts($request);
-            }
+    $minPrice = $request->input('minPrice');
+    $maxPrice = $request->input('maxPrice');
+    $minRating = $request->input('minRating');
+    // lấy page từ request, nếu không có mặc định là 1
+    $page = $request->input('page', 1);
+    // đặt limit mỗi trang là 15
+    $limit = 15;
     
-            $products = Product::with('shop:id,shop_name,shop_logo', 'category:id,name,slug')->get();
-    
-            if ($products->isEmpty()) {
-                return response()->json(['success' => false, 'message' => 'No products found']);
-            }
-    
-            return response()->json(['success' => true, 'data' => $products->makeHidden('category_id','shop_id')]);
-        } catch (\Exception $e) {
-            return response()->json(['success' => false, 'message' => $e->getMessage()]);
-        }
+    try {
+    // tạo một query builder với các điều kiện
+    $query = Product::with('shop:id,shop_name,shop_logo', 'category:id,name,slug')
+    ->when($minPrice, function ($query, $minPrice) {
+    return $query->where('price', '>=', $minPrice);
+    })
+    ->when($maxPrice, function ($query, $maxPrice) {
+    return $query->where('price', '<=', $maxPrice);
+    })
+    ->when($minRating, function ($query, $minRating) {
+    return $query->where(function ($subQuery) use ($minRating) {
+    $subQuery->where('avg_rating', '>=', $minRating)
+    ->orWhereNull('avg_rating');
+    });
+    });
+    // lấy số lượng tất cả các sản phẩm phù hợp với điều kiện
+    $totalItems = $query->count();
+    // sử dụng paginate thay vì get để lấy ra danh sách sản phẩm của trang hiện tại với limit
+    $products = $query->paginate($limit, ['*'], 'page', $page);
+    if ($products->isEmpty()) {
+    return response()->json(['success' => false, 'message' => 'No products found']);
     }
     
-    public function filterProducts(Request $request)
-    {
-        $minPrice = $request->input('minPrice');
-        $maxPrice = $request->input('maxPrice');
-        $minRating = $request->input('minRating');
-    
-        try {
-            $query = Product::with('shop:id,shop_name,shop_logo', 'category:id,name,slug');
-    
-            if ($minPrice !== null) {
-                $query->where('price', '>=', $minPrice);
-            }
-    
-            if ($maxPrice !== null) {
-                $query->where('price', '<=', $maxPrice);
-            }
-    
-            if ($minRating !== null) {
-                $query->where(function ($q) use ($minRating) {
-                    $q->where('avg_rating', '>=', $minRating)
-                      ->orWhereNull('avg_rating');
-                });
-            }
-    
-            $products = $query->get();
-    
-            return response()->json([
-                'success' => true,
-                'data' => $products->makeHidden('category_id', 'shop_id'),
-            ]);
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => $e->getMessage(),
-            ]);
-        }
-    }    
+    return response()->json(['success' => true, 'data' => $products->makeHidden('category_id','shop_id'), 'totalItems' => $totalItems]);
+    } catch (\Exception $e) {
+    return response()->json(['success' => false, 'message' => $e->getMessage()]);
+    }
+    }
 
     public function store(Request $request)
     {
@@ -220,7 +199,7 @@ class ProductController extends Controller
         try {
             $products = Product::with('shop:id,shop_name,shop_logo', 'category:id,name,slug')
                 ->orderBy('sold_quantity', 'desc')
-                ->limit(10)
+                ->limit(6)
                 ->get();
 
                 return response()->json(['success' => true, 'data' => $products->makeHidden('category_id','shop_id')]);
