@@ -14,7 +14,6 @@ class ProductController extends Controller
 {
     public function index(Request $request)
     {
-    
     $minPrice = $request->input('minPrice');
     $maxPrice = $request->input('maxPrice');
     $minRating = $request->input('minRating');
@@ -51,6 +50,7 @@ class ProductController extends Controller
     return response()->json(['success' => false, 'message' => $e->getMessage()]);
     }
     }
+    
 
     public function store(Request $request)
     {

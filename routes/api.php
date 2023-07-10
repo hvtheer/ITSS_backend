@@ -21,7 +21,7 @@ Route::post('/v1/register', 'App\Http\Controllers\Auth\RegisterController@regist
 Route::post('/v1/login', 'App\Http\Controllers\Auth\LoginController@login');
 
 Route::prefix('v1')->group(function () {
-    Route::get('/products', 'App\Http\Controllers\API\ProductController@index');
+    Route::resource('/products', 'App\Http\Controllers\API\ProductController')->only(['index','show']);
     Route::get('/products/best-sellers', 'App\Http\Controllers\API\ProductController@getBestSellingProducts');
     Route::resource('/shops', 'App\Http\Controllers\API\ShopController')->only(['show','index']);
     Route::get('/shops/top', 'App\Http\Controllers\API\ShopController@topShopsBySoldQuantity');
@@ -40,7 +40,7 @@ Route::prefix('v1')->group(function () {
         Route::resource('/invoices', 'App\Http\Controllers\API\InvoiceController');
         Route::resource('/orders', 'App\Http\Controllers\API\OrderController');
         Route::resource('/payment-transactions', 'App\Http\Controllers\API\PaymentTransactionController');
-        // Route::resource('/products', 'App\Http\Controllers\API\ProductController')->except(['index', 'show']);
+        Route::resource('/products', 'App\Http\Controllers\API\ProductController')->except(['index', 'show']);
         Route::resource('/reviews', 'App\Http\Controllers\API\ReviewController');
         Route::resource('/roles', 'App\Http\Controllers\API\RoleController');
         Route::resource('/delivery-info', 'App\Http\Controllers\API\DeliveryInfoController');
