@@ -13,11 +13,28 @@ use Illuminate\Support\Facades\Auth;
 
 class UserController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
+        // Get the current page from the request, default to 1
+        $page = $request->input('page', 1);
+        // Get the perPage value from the request, default to 15
+        $perPage = $request->input('perPage', 15);
+    
         try {
-            $users = User::all();
-            return response()->json(['success' => true, 'data' => $users]);
+            $totalUsers = User::count();
+    
+            $users = User::paginate($perPage, ['*'], 'page', $page);
+    
+            if ($users->isEmpty()) {
+                return response()->json(['success' => false, 'message' => 'No users found']);
+            }
+    
+            return response()->json([
+                'success' => true,
+                'data' => $users->makeHidden(['created_at', 'updated_at']),
+                'totalUsers' => $totalUsers,
+                'perPage' => $perPage, // Include perPage value in the response
+            ]);
         } catch (\Exception $e) {
             return response()->json(['success' => false, 'message' => $e->getMessage()]);
         }
@@ -132,6 +149,26 @@ class UserController extends Controller
             $user->delete();
 
             return response()->json(['success' => true], 204);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()]);
+        }
+    }
+
+    public function getCurrent()
+    {
+        try {
+            $user = Auth::user();
+
+            if($user) {
+                if($user->roleUser->role_id === Role::ROLE_SELLER) {
+                    $data = $user->load('shop');
+                } elseif($user->roleUser->role_id === Role::ROLE_CUSTOMER) {
+                    $data = $user->load('customer');
+                } else {
+                    $data = $user;
+                }
+                return response()->json(['success' => true, 'data' => $data]);
+            }
         } catch (\Exception $e) {
             return response()->json(['success' => false, 'message' => $e->getMessage()]);
         }

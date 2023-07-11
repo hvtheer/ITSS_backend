@@ -13,19 +13,16 @@ class RoleUserSeeder extends Seeder
         RoleUser::create([
             'user_id' => '1',
             'role_id' => '1',
-            'status' => 'approved'
         ]);
 
         RoleUser::create([
             'user_id' => '2',
             'role_id' => '3',
-            'status' => 'pending'
         ]);
 
         RoleUser::create([
             'user_id' => '3',
             'role_id' => '3',
-            'status' => 'pending'
         ]);
 
         RoleUser::factory()->count(7)->create();

@@ -27,7 +27,7 @@ class Invoice extends Model
 
     public function customerCoupon()
     {
-        return $this->belongsTo(UserCoupon::class);
+        return $this->belongsTo(customerCoupon::class);
     }
 
     public function calculateTotalAmountPayable()
@@ -41,19 +41,19 @@ class Invoice extends Model
             $totalAmount += $orderItem->getPrice();
         }
 
-        $userCoupon = $this->userCoupon;
+        $customerCoupon = $this->customerCoupon;
 
-        if ($userCoupon && $userCoupon->is_used === false) {
-            $coupon = $userCoupon->coupon;
-            $discountedAmount = $coupon->discounted_amount;
+        if ($customerCoupon && $customerCoupon->is_used === false) {
+            $coupon = $customerCoupon->coupon;
+            $totalAmountDecreased = $coupon->discounted_amount;
 
-            if ($coupon->type === 'fixed') {
-                $totalAmountDecreased = $discountedAmount;
-            } elseif ($coupon->type === 'percent') {
-                $totalAmountDecreased = $totalAmount * ($discountedAmount / 100);
-            }
+            // if ($coupon->type === 'fixed') {
+            //     $totalAmountDecreased = $discountedAmount;
+            // } elseif ($coupon->type === 'percent') {
+            //     $totalAmountDecreased = $totalAmount * ($discountedAmount / 100);
+            // }
 
-            $totalAmountPayable = $totalAmount - $totalAmountDecreased;
+            // $totalAmountPayable = $totalAmount - $totalAmountDecreased;
         } else {
             $totalAmountDecreased = 0;
             $totalAmountPayable = $totalAmount;

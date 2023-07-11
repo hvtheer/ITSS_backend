@@ -2,33 +2,66 @@
 
 namespace App\Http\Controllers\API;
 
-use App\Http\Controllers\Controller;
+use App\Models\Role;
 use App\Models\Product;
 use App\Models\ProductImage;
-use App\Models\ProductAttribute;
 use Illuminate\Http\Request;
+use App\Models\ProductAttribute;
+use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Auth;
 
 class ProductController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        try {
-            $products = $products = Product::with('shop:id,shop_name,shop_logo', 'category:id,name,slug')->get();
-
-            if ($products->isEmpty()) {
-                return response()->json(['success' => false, 'message' => 'No products found']);
-            }
-
-            return response()->json(['success' => true, 'data' => $products->makeHidden('category_id', 'shop_id')]);
-
-        } catch (\Exception $e) {
-            return response()->json(['success' => false, 'message' => $e->getMessage()]);
-        }
+    $minPrice = $request->input('minPrice');
+    $maxPrice = $request->input('maxPrice');
+    $minRating = $request->input('minRating');
+    // lấy page từ request, nếu không có mặc định là 1
+    $page = $request->input('page', 1);
+    // đặt limit mỗi trang là 15
+    $limit = 15;
+    
+    try {
+    // tạo một query builder với các điều kiện
+    $query = Product::with('shop:id,shop_name,shop_logo', 'category:id,name,slug')
+    ->when($minPrice, function ($query, $minPrice) {
+    return $query->where('price', '>=', $minPrice);
+    })
+    ->when($maxPrice, function ($query, $maxPrice) {
+    return $query->where('price', '<=', $maxPrice);
+    })
+    ->when($minRating, function ($query, $minRating) {
+    return $query->where(function ($subQuery) use ($minRating) {
+    $subQuery->where('avg_rating', '>=', $minRating)
+    ->orWhereNull('avg_rating');
+    });
+    });
+    // lấy số lượng tất cả các sản phẩm phù hợp với điều kiện
+    $totalItems = $query->count();
+    // sử dụng paginate thay vì get để lấy ra danh sách sản phẩm của trang hiện tại với limit
+    $products = $query->paginate($limit, ['*'], 'page', $page);
+    if ($products->isEmpty()) {
+    return response()->json(['success' => false, 'message' => 'No products found']);
+    }
+    
+    return response()->json(['success' => true, 'data' => $products->makeHidden('category_id','shop_id'), 'totalItems' => $totalItems]);
+    } catch (\Exception $e) {
+    return response()->json(['success' => false, 'message' => $e->getMessage()]);
+    }
     }
 
     public function store(Request $request)
     {
         try {
+            $authenticatedUser = Auth::user();
+
+            // Check if the user has the required role
+            if (!$authenticatedUser->roleUser ||
+                !in_array($authenticatedUser->roleUser->role_id, [Role::ROLE_ADMIN, Role::ROLE_SELLER])) {
+                throw new \Exception('You are not authorized to create a product.');
+            }
+
             $validatedData = $request->validate([
                 'slug' => 'required|unique:products',
                 'shop_id' => 'required|exists:shops,id',
@@ -82,6 +115,16 @@ class ProductController extends Controller
     public function update(Request $request, Product $product)
     {
         try {
+            $authenticatedUser = Auth::user();
+
+            // Check if the user has the required role
+            if (!$authenticatedUser->roleUser ||
+                !in_array($authenticatedUser->roleUser->role_id, [Role::ROLE_ADMIN, Role::ROLE_SELLER]) ||
+                ($authenticatedUser->roleUser->role_id === Role::ROLE_SELLER &&
+                $product->shop_id !== $authenticatedUser->id)) {
+                throw new \Exception('You are not authorized to update this product.');
+            }
+
             $validatedData = $request->validate([
                 'slug' => 'required|unique:products,slug,' . $product->id,
                 'shop_id' => 'required|exists:shops,id',
@@ -130,6 +173,16 @@ class ProductController extends Controller
     public function destroy(Product $product)
     {
         try {
+            $authenticatedUser = Auth::user();
+
+            // Check if the user has the required role
+            if (!$authenticatedUser->roleUser ||
+                !in_array($authenticatedUser->roleUser->role_id, [Role::ROLE_ADMIN, Role::ROLE_SELLER]) ||
+                ($authenticatedUser->roleUser->role_id === Role::ROLE_SELLER &&
+                $product->shop_id !== $authenticatedUser->id)) {
+                throw new \Exception('You are not authorized to delete this product.');
+            }
+
             ProductImage::where('product_id', $product->id)->delete();
             ProductAttribute::where('product_id', $product->id)->delete();
             $product->delete();
@@ -138,43 +191,17 @@ class ProductController extends Controller
             return response()->json(['success' => false, 'message' => $e->getMessage()]);
         }
     }
-
-    public function filterProducts(Request $request)
-    {
-        $minPrice = $request->input('min');
-        $maxPrice = $request->input('max');
-        $minRating = $request->input('minRating');
-    
-        try {
-            $products = Product::where('price', '>=', $minPrice)
-                ->where('price', '<=', $maxPrice)
-                ->where(function ($query) use ($minRating) {
-                    $query->where('avg_rating', '>=', $minRating)
-                          ->orWhereNull('avg_rating');
-                })
-                ->get();
-    
-            return response()->json([
-                'success' => true,
-                'data' => $products,
-            ]);
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => $e->getMessage(),
-            ]);
-        }
-    }
     
 
     public function getBestSellingProducts(Request $request)
     {
         try {
             $products = Product::with('shop:id,shop_name,shop_logo', 'category:id,name,slug')
-            ->orderBy('sold_quantity', 'desc')
-            ->limit(10)
-            ->get();
-            return response()->json(['success' => true, 'data' => $products->makeHidden('category_id', 'shop_id')]);
+                ->orderBy('sold_quantity', 'desc')
+                ->limit(6)
+                ->get();
+
+                return response()->json(['success' => true, 'data' => $products->makeHidden('category_id','shop_id')]);
         } catch (\Exception $e) {
             return response()->json(['success' => false, 'message' => $e->getMessage()]);
         }
@@ -183,10 +210,9 @@ class ProductController extends Controller
     public function getLatestProducts(Request $request)
     {
         try {
-            $products = Product::with('shop:id,shop_name,shop_logo', 'category:id,name,slug')
-            ->latest()->take(10)->get();
+            $products = Product::with('shop:id,shop_name,shop_logo', 'category:id,name,slug')->latest()->take(10)->get();
 
-            return response()->json(['success' => true, 'data' => $products->makeHidden('category_id', 'shop_id')]);
+            return response()->json(['success' => true, 'data' => $products->makeHidden('category_id','shop_id')]);
         } catch (\Exception $e) {
             return response()->json(['success' => false, 'message' => $e->getMessage()]);
         }

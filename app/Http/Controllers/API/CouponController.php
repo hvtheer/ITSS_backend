@@ -100,7 +100,7 @@ class CouponController extends Controller
             // Check if the user has the required role
             if (!$authenticatedUser->roleUser ||
                 ($authenticatedUser->roleUser->role_id !== Role::ROLE_ADMIN &&
-                $coupon->created_by !== $authenticatedUser->shop->id &&
+                $coupon->created_by !== $authenticatedUser->id &&
                 !$coupon->customerCoupons()->where('customer_id', $authenticatedUser->customer->id)->exists())) {
                 throw new \Exception('You are not authorized to view this coupon.');
             }
