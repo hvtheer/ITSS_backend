@@ -11,11 +11,12 @@ class CreateShopsTable extends Migration
         Schema::create('shops', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('user_id')->unique();
-            $table->string('shop_name')->nullable();
-            $table->text('description')->nullable();
-            $table->string('address')->nullable();
-            $table->string('phone_number')->nullable();
-            $table->string('shop_logo')->nullable();
+            $table->string('shop_name');
+            $table->text('description');
+            $table->string('address');
+            $table->string('phone_number');
+            $table->string('shop_logo');
+            $table->enum('status', ['pending', 'accepted', 'not_accepted']);
             $table->timestamps();
 
             $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');

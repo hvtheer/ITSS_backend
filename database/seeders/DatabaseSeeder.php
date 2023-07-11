@@ -12,24 +12,24 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         $this->call([
-            // UserSeeder::class,
-            // RoleSeeder::class,
-            // RoleUserSeeder::class,
-            // ShopSeeder::class,
-            // CategorySeeder::class,
-            // CustomerSeeder::class,
-            // CouponSeeder::class,
-            // CustomerCouponSeeder::class,
-            // ProductSeeder::class,
-            // ProductImageSeeder::class,
-            // ProductAttributeSeeder::class,
-            // ProductCouponSeeder::class,
-            // DeliveryInfoSeeder::class,
-            // OrderSeeder::class,
-            // OrderItemSeeder::class,
-            // InvoiceSeeder::class,
-            // PaymentTransactionSeeder::class,
-            // ReviewSeeder::class
+            UserSeeder::class,
+            RoleSeeder::class,
+            RoleUserSeeder::class,
+            ShopSeeder::class,
+            CategorySeeder::class,
+            CustomerSeeder::class,
+            CouponSeeder::class,
+            CustomerCouponSeeder::class,
+            ProductSeeder::class,
+            ProductImageSeeder::class,
+            ProductAttributeSeeder::class,
+            ProductCouponSeeder::class,
+            DeliveryInfoSeeder::class,
+            OrderSeeder::class,
+            OrderItemSeeder::class,
+            InvoiceSeeder::class,
+            PaymentTransactionSeeder::class,
+            ReviewSeeder::class
         ]);
     }
 }

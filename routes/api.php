@@ -21,13 +21,14 @@ Route::post('/v1/register', 'App\Http\Controllers\Auth\RegisterController@regist
 Route::post('/v1/login', 'App\Http\Controllers\Auth\LoginController@login');
 
 Route::prefix('v1')->group(function () {
-    Route::resource('/products', 'App\Http\Controllers\API\ProductController')->only(['index','show']);
+    Route::get('/products', 'App\Http\Controllers\API\ProductController@index');
     Route::get('/products/best-sellers', 'App\Http\Controllers\API\ProductController@getBestSellingProducts');
-    Route::resource('/shops', 'App\Http\Controllers\API\ShopController')->only(['show','index']);
     Route::get('/shops/top', 'App\Http\Controllers\API\ShopController@topShopsBySoldQuantity');
     Route::get('/shops/{shop}', 'App\Http\Controllers\API\ShopController@show');
     Route::get('/products/latest', 'App\Http\Controllers\API\ProductController@getLatestProducts');
     Route::resource('/categories', 'App\Http\Controllers\API\CategoryController')->only(['show','index']);
+    Route::resource('/shops', 'App\Http\Controllers\API\ShopController')->only(['show','index']);
+    Route::get('/products/{product}', 'App\Http\Controllers\API\ProductController@show');
     
     // Routes accessible to all authenticated users
     Route::middleware('auth:api')->group(function () {
