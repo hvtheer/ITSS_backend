@@ -5,6 +5,7 @@ namespace App\Http\Controllers\API;
 use App\Models\Role;
 use App\Models\Product;
 use App\Models\ProductImage;
+use App\Models\ProductCoupon;
 use Illuminate\Http\Request;
 use App\Models\ProductAttribute;
 use App\Http\Controllers\Controller;
@@ -12,18 +13,22 @@ use Illuminate\Support\Facades\Auth;
 
 class ProductController extends Controller
 {
-    public function index(Request $request)
+        public function index(Request $request)
     {
+    // Lấy name và category_id từ request
+    $name = $request->input('name');
+    $category_id = $request->input('category_id');
+    // Lấy minPrice, maxPrice và minRating từ request
     $minPrice = $request->input('minPrice');
     $maxPrice = $request->input('maxPrice');
     $minRating = $request->input('minRating');
-    // lấy page từ request, nếu không có mặc định là 1
+    // Lấy page từ request, nếu không có mặc định là 1
     $page = $request->input('page', 1);
-    // đặt limit mỗi trang là 15
+    // Đặt limit mỗi trang là 15
     $limit = 15;
     
     try {
-    // tạo một query builder với các điều kiện
+    // Tạo một query builder với các điều kiện
     $query = Product::with('shop:id,shop_name,shop_logo', 'category:id,name,slug')
     ->when($minPrice, function ($query, $minPrice) {
     return $query->where('price', '>=', $minPrice);
@@ -36,16 +41,26 @@ class ProductController extends Controller
     $subQuery->where('avg_rating', '>=', $minRating)
     ->orWhereNull('avg_rating');
     });
+    })
+    // Thêm điều kiện tìm kiếm theo name
+    ->when($name, function ($query, $name) {
+    return $query->where('name', 'like', "%$name%");
+    })
+    // Thêm điều kiện tìm kiếm theo category_id
+    ->when($category_id, function ($query, $category_id) {
+    return $query->whereHas('category', function ($subQuery) use ($category_id) {
+    $subQuery->where('id', '=', $category_id);
     });
-    // lấy số lượng tất cả các sản phẩm phù hợp với điều kiện
+    });
+    // Lấy số lượng tất cả các sản phẩm phù hợp với điều kiện
     $totalItems = $query->count();
-    // sử dụng paginate thay vì get để lấy ra danh sách sản phẩm của trang hiện tại với limit
+    // Sử dụng paginate thay vì get để lấy ra danh sách sản phẩm của trang hiện tại với limit
     $products = $query->paginate($limit, ['*'], 'page', $page);
     if ($products->isEmpty()) {
     return response()->json(['success' => false, 'message' => 'No products found']);
     }
     
-    return response()->json(['success' => true, 'data' => $products->makeHidden('category_id','shop_id'), 'totalItems' => $totalItems]);
+    return response()->json(['success' => true, 'data' => $products->makeHidden(['category_id','shop_id']), 'totalItems' => $totalItems]);
     } catch (\Exception $e) {
     return response()->json(['success' => false, 'message' => $e->getMessage()]);
     }
@@ -100,75 +115,150 @@ class ProductController extends Controller
             return response()->json(['success' => false, 'message' => $e->getMessage()]);
         }
     }
-
     public function show(Product $product)
     {
-        try {
-            $product = $product->load('productImages', 'productAttributes');
+        $product = $product->load('productImages', 'productAttributes', 'productCoupons.coupon');
 
-            return response()->json(['success' => true, 'data' => $product]);
-        } catch (\Exception $e) {
-            return response()->json(['success' => false, 'message' => $e->getMessage()]);
-        }
+        $product->productImages->makeHidden(['created_at', 'updated_at', 'product_id']);
+        $product->productAttributes->makeHidden(['created_at', 'updated_at', 'product_id']);
+        $product->productCoupons->makeHidden(['created_at', 'updated_at', 'product_id', 'coupon_id', 'id']);
+
+        $product->productCoupons->each(function ($productCoupon) {
+            $productCoupon->coupon->makeHidden(['created_at', 'updated_at','created_by', 'id']);
+        });
+
+        return response()->json(['success' => true, 'data' => $product]);
     }
 
-    public function update(Request $request, Product $product)
-    {
-        try {
-            $authenticatedUser = Auth::user();
 
-            // Check if the user has the required role
-            if (!$authenticatedUser->roleUser ||
-                !in_array($authenticatedUser->roleUser->role_id, [Role::ROLE_ADMIN, Role::ROLE_SELLER]) ||
-                ($authenticatedUser->roleUser->role_id === Role::ROLE_SELLER &&
-                $product->shop_id !== $authenticatedUser->id)) {
-                throw new \Exception('You are not authorized to update this product.');
-            }
+//     public function update(Request $request, Product $product)
+//     {
+//         try {
+//         $authenticatedUser = Auth::user();
 
-            $validatedData = $request->validate([
-                'slug' => 'required|unique:products,slug,' . $product->id,
-                'shop_id' => 'required|exists:shops,id',
-                'name' => 'required',
-                'description' => 'required',
-                'price' => 'required|numeric',
-                'thumbnail' => 'required|mimes:jpg,jpeg,png',
-                'sold_quantity' => 'required|integer',
-                'stock_quantity' => 'required|integer',
-                'category_id' => 'required|exists:categories,id',
-                'images' => 'nullable|array',
-                'images.*.image_url' => 'required_with:images|array',
-                'attributes' => 'nullable|array',
-                'attributes.*.name' => 'required_with:attributes|array',
-                'attributes.*.value' => 'required_with:attributes|array',
-            ]);
+//         // Check if the user has the required role
+//         if (!$authenticatedUser->roleUser ||
+//         !in_array($authenticatedUser->roleUser->role_id, [Role::ROLE_ADMIN, Role::ROLE_SELLER]) ||
+//         ($authenticatedUser->roleUser->role_id === Role::ROLE_SELLER &&
+//         $product->shop_id !== $authenticatedUser->id)) {
+//         throw new \Exception('You are not authorized to update this product.');
+//         }
 
-            $product->update($validatedData);
+//         $validatedData = $request->validate([
+//         'slug' => 'sometimes|unique:products,slug,' . $product->id,
+//         'shop_id' => 'sometimes|exists:shops,id',
+//         'name' => 'sometimes',
+//         'description' => 'sometimes',
+//         'price' => 'sometimes|numeric',
+//         'thumbnail' => 'sometimes|mimes:jpg,jpeg,png',
+//         'sold_quantity' => 'sometimes|integer',
+//         'stock_quantity' => 'sometimes|integer',
+//         'category_id' => 'sometimes|exists:categories,id',
+//         'images' => 'sometimes|array',
+//         'images..image_url' => 'sometimes|required_with:images|array',
+//         'attributes' => 'sometimes|array',
+//         'attributes..name' => 'sometimes|required_with:attributes|array',
+//         'attributes.*.value' => 'sometimes|required_with:attributes|array',
+//         ]);
 
-            if ($request->has('images')) {
-                $images = [];
-                foreach ($validatedData['images'] as $imageData) {
-                    $imageData['product_id'] = $product->id;
-                    $images[] = $imageData;
-                }
-                ProductImage::where('product_id', $product->id)->delete();
-                ProductImage::insert($images);
-            }
+//         if ($request->hasAny(['slug', 'shop_id', 'name', 'description', '
+//         price', 'thumbnail', 'sold_quantity','stock_quantity','category_id'])) {
+//         // Update the product with the validated data
+//         $product->update($validatedData);
+//         }
 
-            if ($request->has('attributes')) {
-                $attributes = [];
-                foreach ($validatedData['attributes'] as $attributeData) {
-                    $attributeData['product_id'] = $product->id;
-                    $attributes[] = $attributeData;
-                }
-                ProductAttribute::where('product_id', $product->id)->delete();
-                ProductAttribute::insert($attributes);
-            }
+//         // Check if the request has images
+//         if ($request->has('images')) {
+//             // Create an array of image data
+//             $images = [];
+//             foreach ($validatedData['images'] as $imageData) {
+//                     $imageData['product_id'] = $product->id;
+//                     $images[] = $imageData;
+//                 }
+//                 // Delete the old images of the product in the product_images table
+//             ProductImage::where('product_id', $product->id)->delete();
+//                 // Insert the new images into the product_images table
+//             ProductImage::insert($images);
+//         }
+//         // Check if the request has attributes
+//         if ($request->has('attributes')) {
+//         // Create an array of attribute data
+//             $attributes = [];
+//             foreach ($validatedData['attributes'] as $attributeData) {
+//                     $attributeData['product_id'] = $product->id;
+//                     $attributes[] = $attributeData;
+//                 }
 
-            return response()->json(['success' => true, 'data' => $product]);
-        } catch (\Exception $e) {
-            return response()->json(['success' => false, 'message' => $e->getMessage()]);
+//             ProductAttribute::where('product_id', $product->id)->delete();
+//             ProductAttribute::insert($attributes);
+//         }
+        
+//         return response()->json(['success'=> true, 'data'=> $product]);
+        
+//     } catch (\Exception $e) {
+//         // Return an error response with the exception message
+//         return response()->json(['success'=> false,'message'=> $e-> getMessage()]);
+//     }
+// }
+
+
+public function update(Request $request, Product $product)
+{
+    try {
+        $authenticatedUser = Auth::user();
+
+        // Check if the user has the required role
+        if (!$authenticatedUser->roleUser ||
+            !in_array($authenticatedUser->roleUser->role_id, [Role::ROLE_ADMIN, Role::ROLE_SELLER]) ||
+            ($authenticatedUser->roleUser->role_id === Role::ROLE_SELLER &&
+            $product->shop_id !== $authenticatedUser->id)) {
+            throw new \Exception('You are not authorized to update this product.');
         }
+
+        $validatedData = $request->validate([
+            'slug' => 'required|unique:products,slug,' . $product->id,
+            'shop_id' => 'required|exists:shops,id',
+            'name' => 'required',
+            'description' => 'required',
+            'price' => 'required|numeric',
+            'thumbnail' => 'required|mimes:jpg,jpeg,png',
+            'sold_quantity' => 'required|integer',
+            'stock_quantity' => 'required|integer',
+            'category_id' => 'required|exists:categories,id',
+            'images' => 'nullable|array',
+            'images.*.image_url' => 'required_with:images|array',
+            'attributes' => 'nullable|array',
+            'attributes.*.name' => 'required_with:attributes|array',
+            'attributes.*.value' => 'required_with:attributes|array',
+        ]);
+
+        $product->update($validatedData);
+
+        if ($request->has('images')) {
+            $images = [];
+            foreach ($validatedData['images'] as $imageData) {
+                $imageData['product_id'] = $product->id;
+                $images[] = $imageData;
+            }
+            ProductImage::where('product_id', $product->id)->delete();
+            ProductImage::insert($images);
+        }
+
+        if ($request->has('attributes')) {
+            $attributes = [];
+            foreach ($validatedData['attributes'] as $attributeData) {
+                $attributeData['product_id'] = $product->id;
+                $attributes[] = $attributeData;
+            }
+            ProductAttribute::where('product_id', $product->id)->delete();
+            ProductAttribute::insert($attributes);
+        }
+
+        return response()->json(['success' => true, 'data' => $product]);
+    } catch (\Exception $e) {
+        return response()->json(['success' => false, 'message' => $e->getMessage()]);
     }
+}
 
     public function destroy(Product $product)
     {
@@ -198,7 +288,7 @@ class ProductController extends Controller
         try {
             $products = Product::with('shop:id,shop_name,shop_logo', 'category:id,name,slug')
                 ->orderBy('sold_quantity', 'desc')
-                ->limit(6)
+                ->limit(10)
                 ->get();
 
                 return response()->json(['success' => true, 'data' => $products->makeHidden('category_id','shop_id')]);
@@ -210,7 +300,8 @@ class ProductController extends Controller
     public function getLatestProducts(Request $request)
     {
         try {
-            $products = Product::with('shop:id,shop_name,shop_logo', 'category:id,name,slug')->latest()->take(10)->get();
+            $products = Product::with('shop:id,shop_name,shop_logo', 'category:id,name,slug')
+            ->latest()->take(10)->get();
 
             return response()->json(['success' => true, 'data' => $products->makeHidden('category_id','shop_id')]);
         } catch (\Exception $e) {

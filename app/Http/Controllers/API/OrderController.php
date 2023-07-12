@@ -110,7 +110,7 @@ class OrderController extends Controller
             $invoice->calculateTotalAmountPayable();
     
             // Save the invoice to persist it in the database
-            $invoice->save();
+            // $invoice->save();
             return response()->json(['success' => true, 'data' => $invoice], 201);
         } catch (\Exception $e) {
             return response()->json(['success' => false, 'message' => $e->getMessage()]);

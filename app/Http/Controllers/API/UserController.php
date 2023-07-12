@@ -15,15 +15,13 @@ class UserController extends Controller
 {
     public function index(Request $request)
     {
-        // Get the current page from the request, default to 1
         $page = $request->input('page', 1);
-        // Get the perPage value from the request, default to 15
-        $perPage = $request->input('perPage', 15);
+        $limit = $request->input('limit', 15);
     
         try {
             $totalUsers = User::count();
     
-            $users = User::paginate($perPage, ['*'], 'page', $page);
+            $users = User::paginate($limit, ['*'], 'page', $page);
     
             if ($users->isEmpty()) {
                 return response()->json(['success' => false, 'message' => 'No users found']);
@@ -31,9 +29,8 @@ class UserController extends Controller
     
             return response()->json([
                 'success' => true,
-                'data' => $users->makeHidden(['created_at', 'updated_at']),
+                'data' => $users->makeHidden(['created_at', 'updated_at','email_verified_at']),
                 'totalUsers' => $totalUsers,
-                'perPage' => $perPage, // Include perPage value in the response
             ]);
         } catch (\Exception $e) {
             return response()->json(['success' => false, 'message' => $e->getMessage()]);

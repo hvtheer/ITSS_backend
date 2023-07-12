@@ -14,36 +14,36 @@ class CustomerController extends Controller
     {
     try {
     $search = $request->input('search');
-    $page = $request->input('page', 1); // get the page number or default to 1
-    $limit = 15; // set the limit to 15
+    $page = $request->input('page', 1); 
+    $limit= $request->input('limit', 15);
     
-    $customers = Customer::with(['user' => function ($query) {
+    $query = Customer::with(['user' => function ($query) {
     $query->select('id', 'email', 'username');
-    }])->select('name', 'phone_number', 'address', 'id','user_id', 'created_at')
-    ->orWhere('name', 'like', "%$search%")
-    ->orWhere('phone_number', 'like', "%$search%")
-    ->orWhere('address', 'like', "%$search%")
-    ->orderBy('created_at', 'desc') // order by created_at descending
-    ->paginate($limit, ['*'], 'page', $page); // paginate the data with the limit and page number
+    }])->select('name', 'phone_number', 'address', 'id','user_id', 'created_at');
     
-    if ($customers->isEmpty()) {
+    if ($search) {
+    $query->where('name', 'like', "%$search%")
+    ->orWhere('phone_number', 'like', "%$search%")
+    ->orWhere('address', 'like', "%$search%");
+    }
+    
+    $query->orderBy('created_at', 'desc');
+    
+    $customers = $query->paginate($limit, ['*'], 'page', $page);
+    
+    $customers = $customers->getCollection()->toArray();
+    
+    if (empty($customers)) {
     return response()->json(['success' => false, 'message' => 'No customers found']);
     }
     
-    $totalItems = Customer::with(['user' => function ($query) {
-    $query->select('id', 'email', 'username');
-    }])->select('name', 'phone_number', 'address', 'id','user_id', 'created_at')
-    ->orWhere('name', 'like', "%$search%")
-    ->orWhere('phone_number', 'like', "%$search%")
-    ->orWhere('address', 'like', "%$search%")
-    ->get() // get all customers by query without limit
-    ->count(); // count the number of customers
-    
-    return response()->json(['success' => true, 'data' => $customers, 'totalItems' => $totalItems]); // return the data and the totalItems
+    $totalItems = $query->count();
+
+    return response()->json(['success' => true, 'data' => $customers, 'totalItems' => $totalItems]);
     } catch (\Exception $e) {
     return response()->json(['success' => false, 'message' => $e->getMessage()]);
     }
-}
+    }
 
 
     public function store(Request $request)
@@ -115,9 +115,8 @@ class CustomerController extends Controller
             ) {
                 throw new \Exception('You are not authorized to delete this customer.');
             }
-
             $customer->delete();
-            return response()->json(['success' => true], 204);
+            return response()->json(['success' => true, 'data'=>"Delete successfully"], 204);
         } catch (\Exception $e) {
             return response()->json(['success' => false, 'message' => $e->getMessage()]);
         }

@@ -42,25 +42,26 @@ class Invoice extends Model
         }
 
         $customerCoupon = $this->customerCoupon;
-
-        if ($customerCoupon && $customerCoupon->is_used === false) {
+        
+        $totalAmountDecreased = 0;
+        
+        if ($customerCoupon && $customerCoupon->is_used === 0) {
             $coupon = $customerCoupon->coupon;
-            $totalAmountDecreased = $coupon->discounted_amount;
-
-            // if ($coupon->type === 'fixed') {
-            //     $totalAmountDecreased = $discountedAmount;
-            // } elseif ($coupon->type === 'percent') {
-            //     $totalAmountDecreased = $totalAmount * ($discountedAmount / 100);
-            // }
-
-            // $totalAmountPayable = $totalAmount - $totalAmountDecreased;
+            
+            if ($coupon->type === 'fixed') {
+                $totalAmountDecreased = $coupon->discounted_amount;
+            }
+            if ($coupon->type === 'percent') {
+                $totalAmountDecreased = $totalAmount * ($coupon->discounted_amount / 100);
+            }
+            
+            $totalAmountPayable = $totalAmount - $totalAmountDecreased;
         } else {
-            $totalAmountDecreased = 0;
-            $totalAmountPayable = $totalAmount;
+         $totalAmountPayable = $totalAmount;
         }
 
         $this->total_amount = $totalAmount;
         $this->total_amount_decreased = $totalAmountDecreased;
         $this->total_amount_payable = $totalAmountPayable;
-    }
+}
 }

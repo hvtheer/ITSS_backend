@@ -67,7 +67,7 @@ class Product extends Model
 
     public function productCoupons()
     {
-        return $this->hasMany(ProductCoupons::class);
+    return $this->hasMany(ProductCoupon::class);
     }
 
     public function reviews()
