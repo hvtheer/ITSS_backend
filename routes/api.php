@@ -50,3 +50,5 @@ Route::prefix('v1')->group(function () {
     });
     
 });
+
+Route::post('/pay', 'App\Http\Controllers\API\PayController@payment');
