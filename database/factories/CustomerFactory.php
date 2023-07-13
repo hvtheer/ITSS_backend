@@ -17,6 +17,8 @@ class CustomerFactory extends Factory
             'name' => $this->faker->name,
             'phone_number' => $this->faker->phoneNumber,
             'address' => $this->faker->address,
+            'shop_logo' => $this->faker->imageUrl(),
+            'status' => $this->faker->randomElement(['active', 'inactive'])
         ];
     }
 }

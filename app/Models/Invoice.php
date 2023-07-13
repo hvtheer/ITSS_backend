@@ -43,17 +43,17 @@ class Invoice extends Model
 
         $customerCoupon = $this->customerCoupon;
 
-        if ($customerCoupon && $customerCoupon->is_used === false) {
+        if ($customerCoupon && $customerCoupon->is_used === 0) {
             $coupon = $customerCoupon->coupon;
-            $totalAmountDecreased = $coupon->discounted_amount;
+            $discountedAmount = $coupon->discounted_amount;
 
-            // if ($coupon->type === 'fixed') {
-            //     $totalAmountDecreased = $discountedAmount;
-            // } elseif ($coupon->type === 'percent') {
-            //     $totalAmountDecreased = $totalAmount * ($discountedAmount / 100);
-            // }
+            if ($coupon->type === 'fixed') {
+                $totalAmountDecreased = $discountedAmount;
+            } elseif ($coupon->type === 'percent') {
+                $totalAmountDecreased = $totalAmount * ($discountedAmount / 100);
+            }
 
-            // $totalAmountPayable = $totalAmount - $totalAmountDecreased;
+            $totalAmountPayable = $totalAmount - $totalAmountDecreased;
         } else {
             $totalAmountDecreased = 0;
             $totalAmountPayable = $totalAmount;

@@ -14,38 +14,38 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-// Route::resource('/v1/products', 'App\Http\Controllers\API\ProductController');
+// Route::resource('/v1/products', 'ProductController');
 
 //　Routes accessible to authentication
-Route::post('/v1/register', 'App\Http\Controllers\Auth\RegisterController@register');
+Route::post('/v1/register-customer', 'App\Http\Controllers\Auth\RegisterController@registerCustomer');
+Route::post('/v1/register-shop', 'App\Http\Controllers\Auth\RegisterController@registerShop');
 Route::post('/v1/login', 'App\Http\Controllers\Auth\LoginController@login');
 
-Route::prefix('v1')->group(function () {
-    Route::get('/products', 'App\Http\Controllers\API\ProductController@index');
-    Route::get('/products/best-sellers', 'App\Http\Controllers\API\ProductController@getBestSellingProducts');
-    Route::get('/shops/top', 'App\Http\Controllers\API\ShopController@topShopsBySoldQuantity');
-    Route::get('/shops/{shop}', 'App\Http\Controllers\API\ShopController@show');
-    Route::get('/products/latest', 'App\Http\Controllers\API\ProductController@getLatestProducts');
-    Route::resource('/categories', 'App\Http\Controllers\API\CategoryController')->only(['show','index']);
-    Route::resource('/shops', 'App\Http\Controllers\API\ShopController')->only(['show','index']);
-    Route::get('/products/{product}', 'App\Http\Controllers\API\ProductController@show');
+Route::prefix('v1')->namespace('App\Http\Controllers\API')->group(function () {
+    Route::get('/products/best-sellers', 'ProductController@getBestSellingProducts');
+    Route::get('/shops/top', 'ShopController@topShopsBySoldQuantity');
+    Route::get('/shops/{shop}', 'ShopController@show');
+    Route::get('/products/latest', 'ProductController@getLatestProducts');
+    Route::resource('/categories', 'CategoryController')->only(['show','index']);
+    Route::resource('/shops', 'ShopController')->only(['show','index']);
+    Route::resource('/products', 'ProductController')->only(['show','index']);
     
     // Routes accessible to all authenticated users
     Route::middleware('auth:api')->group(function () {
     
-        Route::get('/current', 'App\Http\Controllers\API\UserController@getCurrent');
-        Route::resource('/users', 'App\Http\Controllers\API\UserController');
-        Route::resource('/categories', 'App\Http\Controllers\API\CategoryController')->except(['index', 'show']);
-        Route::resource('/coupons', 'App\Http\Controllers\API\CouponController');
-        Route::resource('/customers', 'App\Http\Controllers\API\CustomerController');
-        Route::resource('/invoices', 'App\Http\Controllers\API\InvoiceController');
-        Route::resource('/orders', 'App\Http\Controllers\API\OrderController');
-        Route::resource('/payment-transactions', 'App\Http\Controllers\API\PaymentTransactionController');
-        Route::resource('/products', 'App\Http\Controllers\API\ProductController')->except(['index', 'show']);
-        Route::resource('/reviews', 'App\Http\Controllers\API\ReviewController');
-        Route::resource('/roles', 'App\Http\Controllers\API\RoleController');
-        Route::resource('/delivery-info', 'App\Http\Controllers\API\DeliveryInfoController');
-        Route::resource('/shops', 'App\Http\Controllers\API\ShopController')->except(['index', 'show']);
+        Route::get('/current', 'UserController@getCurrent');
+        Route::resource('/users', 'UserController');
+        Route::resource('/categories', 'CategoryController')->except(['index', 'show']);
+        Route::resource('/coupons', 'CouponController');
+        Route::resource('/customers', 'CustomerController');
+        Route::resource('/invoices', 'InvoiceController');
+        Route::resource('/orders', 'OrderController');
+        Route::resource('/payment-transactions', 'PaymentTransactionController');
+        Route::resource('/products', 'ProductController')->except(['index', 'show']);
+        Route::resource('/reviews', 'ReviewController');
+        Route::resource('/roles', 'RoleController');
+        Route::resource('/delivery-info', 'DeliveryInfoController');
+        Route::resource('/shops', 'ShopController')->except(['index', 'show']);
         
     });
     

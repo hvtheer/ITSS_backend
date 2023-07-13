@@ -4,6 +4,7 @@ namespace App\Http\Controllers\API;
 
 use App\Models\Role;
 use App\Models\Shop;
+use App\Http\Helpers;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Illuminate\Pagination\Paginator;
@@ -13,15 +14,22 @@ class ShopController extends Controller
 {
     public function index(Request $request)
     {
-        // Get the current page from the request, default to 1
-        $page = $request->input('page', 1);
-        // Get the perPage value from the request, default to 15
-        $perPage = $request->input('perPage', 15);
-    
         try {
-            $totalShops = Shop::count();
-    
-            $shops = Shop::paginate($perPage, ['*'], 'page', $page);
+            // Get the current page from the request, default to 1
+            $page = $request->input('page', 1);
+            // Get the limit value from the request, default to 15
+            $limit = $request->input('limit', 15);
+            
+            // Check if the authenticated user is an admin
+            if (!Helpers::isAdmin()) {
+                // Retrieve only non-deleted shops
+                $totalShops = Shop::where('deleted', false)->count();
+                $shops = Shop::where('deleted', false)->paginate($limit, ['*'], 'page', $page);
+            } else {
+                // Retrieve all shops (including deleted)
+                $totalShops = Shop::count();
+                $shops = Shop::paginate($limit, ['*'], 'page', $page);
+            }
     
             if ($shops->isEmpty()) {
                 return response()->json(['success' => false, 'message' => 'No shops found']);
@@ -31,7 +39,6 @@ class ShopController extends Controller
                 'success' => true,
                 'data' => $shops->makeHidden(['created_at', 'updated_at']),
                 'totalShops' => $totalShops,
-                'perPage' => $perPage, // Include perPage value in the response
             ]);
         } catch (\Exception $e) {
             return response()->json(['success' => false, 'message' => $e->getMessage()]);
@@ -42,10 +49,9 @@ class ShopController extends Controller
     public function store(Request $request)
     {
         try {
-            $authenticatedUser = Auth::user();
-
-            if ($authenticatedUser->roleUser->role_id !== Role::ROLE_ADMIN) {
-                throw new \Exception('You are not authorized to create a shop.');
+            // Check if the authenticated user is an admin
+            if (!Helpers::isAdmin()) {
+                return response()->json(['error' => 'Unauthorized'], 401);
             }
 
             $validatedData = $request->validate([
@@ -54,7 +60,7 @@ class ShopController extends Controller
                 'description' => 'required',
                 'address' => 'required',
                 'phone_number' => 'required',
-                'is_verified' => 'required|in:PENDING,ACCEPTED,NOT_ACCEPTED',
+                'verified' => 'required|boolean',
                 'shop_logo' => 'nullable',
             ]);
 
@@ -68,12 +74,20 @@ class ShopController extends Controller
     public function show(Shop $shop)
     {
         try {
+            // If the authenticated user is a customer or shop, check if the record is deleted
+            if (Helpers::isCustomer() || Helpers::isShop()) {
+                if ($shop->deleted || !$shop->verified) {
+                    return response()->json(['success' => false, 'message' => 'Shop not found'], 404);
+                }
+            }
+            
             $shop = $shop->load('products');
             return response()->json(['success' => true, 'data' => $shop]);
         } catch (\Exception $e) {
             return response()->json(['success' => false, 'message' => $e->getMessage()]);
         }
     }
+    
 
     public function update(Request $request, Shop $shop)
     {

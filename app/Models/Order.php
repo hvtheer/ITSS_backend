@@ -15,6 +15,7 @@ class Order extends Model
         'delivery_info_id',
         'order_status',
         'note',
+        'deleted'
     ];
 
     public function customer()

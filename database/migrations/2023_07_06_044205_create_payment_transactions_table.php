@@ -14,6 +14,7 @@ class CreatePaymentTransactionsTable extends Migration
             $table->string('card_password');
             $table->integer('card_number');
             $table->unsignedBigInteger('invoice_id');
+            $table->boolean('deleted')->default(false);
             $table->timestamps();
 
             $table->foreign('invoice_id')->references('id')->on('invoices')->onDelete('cascade');

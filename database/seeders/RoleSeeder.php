@@ -12,14 +12,17 @@ class RoleSeeder extends Seeder
         // Create an admin user
         Role::create([
             'role' => 'admin',
+            'deleted' => false
         ]);
         // Create an customer user
         Role::create([
             'role' => 'seller',
+            'deleted' => false
         ]);
         // Create an customer user
         Role::create([
             'role' => 'customer',
+            'deleted' => false
         ]);
     }
 }

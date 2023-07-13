@@ -15,6 +15,7 @@ class CreateDeliveryInfosTable extends Migration
             $table->string('note', 200)->nullable();
             $table->string('address', 100);
             $table->decimal('shipping_fee', 8, 2)->default('30000');
+            $table->boolean('deleted')->default(false);
             $table->timestamps();
         });
     }

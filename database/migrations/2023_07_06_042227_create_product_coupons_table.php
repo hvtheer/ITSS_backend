@@ -12,6 +12,7 @@ class CreateProductCouponsTable extends Migration
             $table->id();
             $table->unsignedBigInteger('product_id');
             $table->unsignedBigInteger('coupon_id');
+            $table->boolean('deleted')->default(false);
             $table->timestamps();
 
             $table->foreign('product_id')->references('id')->on('products')->onDelete('cascade');

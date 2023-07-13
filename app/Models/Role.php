@@ -11,6 +11,7 @@ class Role extends Model
 
     protected $fillable = [
         'role',
+        'deleted'
     ];
 
     public const ROLE_ADMIN = 1;

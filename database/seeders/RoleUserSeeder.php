@@ -13,18 +13,21 @@ class RoleUserSeeder extends Seeder
         RoleUser::create([
             'user_id' => '1',
             'role_id' => '1',
+            'deleted' => false
         ]);
 
         RoleUser::create([
             'user_id' => '2',
             'role_id' => '3',
+            'deleted' => false
         ]);
 
         RoleUser::create([
             'user_id' => '3',
             'role_id' => '3',
+            'deleted' => false
         ]);
 
-        RoleUser::factory()->count(7)->create();
+        RoleUser::factory()->count(4)->create();
     }
 }

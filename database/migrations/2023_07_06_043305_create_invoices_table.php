@@ -17,6 +17,7 @@ class CreateInvoicesTable extends Migration
             $table->float('total_amount_payable');
             $table->enum('payment_method', ['cod', 'card']);
             $table->enum('payment_status', ['paid', 'unpaid']);
+            $table->boolean('deleted')->default(false);
             $table->timestamps();
 
             $table->foreign('order_id')->references('id')->on('orders')->onDelete('cascade');

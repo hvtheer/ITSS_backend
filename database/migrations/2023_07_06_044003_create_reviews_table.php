@@ -15,6 +15,7 @@ class CreateReviewsTable extends Migration
             $table->unsignedBigInteger('customer_id');
             $table->integer('rating');
             $table->text('review_text');
+            $table->boolean('deleted')->default(false);
             $table->timestamps();
 
             $table->unique(['product_id', 'order_id']);

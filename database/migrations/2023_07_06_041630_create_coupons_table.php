@@ -17,6 +17,7 @@ class CreateCouponsTable extends Migration
             $table->unsignedBigInteger('created_by');
             $table->datetime('start_date');
             $table->datetime('end_date');
+            $table->boolean('deleted')->default(false);
             $table->timestamps();
 
             $table->foreign('created_by')->references('id')->on('users')->onDelete('cascade');

@@ -15,6 +15,7 @@ class Review extends Model
         'customer_id',
         'rating',
         'review_text',
+        'deleted'
     ];
 
     public function product()

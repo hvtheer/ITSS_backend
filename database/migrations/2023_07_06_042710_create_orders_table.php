@@ -15,6 +15,7 @@ class CreateOrdersTable extends Migration
             $table->unsignedBigInteger('delivery_info_id')->nullable();
             $table->enum('order_status', ['pending', 'accepted', 'not accepted'])->default('pending');
             $table->text('note')->nullable();
+            $table->boolean('deleted')->default(false);
             $table->timestamps();
 
             $table->foreign('customer_id')->references('id')->on('customers')->onDelete('cascade');

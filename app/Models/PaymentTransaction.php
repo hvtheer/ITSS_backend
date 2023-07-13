@@ -14,6 +14,7 @@ class PaymentTransaction extends Model
         'card_password',
         'card_number',
         'invoice_id',
+        'deleted'
     ];
 
     public function invoice()

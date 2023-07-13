@@ -24,6 +24,7 @@ class Product extends Model
         'stock_quantity',
         'category_id',
         'avg_rating',
+        'deleted'
     ];
 
     protected static function boot()
@@ -67,7 +68,7 @@ class Product extends Model
 
     public function productCoupons()
     {
-        return $this->hasMany(ProductCoupons::class);
+        return $this->hasMany(ProductCoupon::class);
     }
 
     public function reviews()

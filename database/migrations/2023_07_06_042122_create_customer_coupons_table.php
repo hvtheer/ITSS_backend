@@ -13,6 +13,7 @@ class CreateCustomerCouponsTable extends Migration
             $table->unsignedBigInteger('customer_id');
             $table->unsignedBigInteger('coupon_id');
             $table->boolean('is_used')->default(false);
+            $table->boolean('deleted')->default(false);
             $table->timestamps();
 
             $table->foreign('customer_id')->references('id')->on('customers')->onDelete('cascade');

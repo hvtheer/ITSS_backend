@@ -14,7 +14,8 @@ class RoleUser extends Model
     protected $fillable = [
         'user_id',
         'role_id',
-        'status'
+        'status',
+        'deleted'
     ];
 
     public function user()

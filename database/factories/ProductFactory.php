@@ -24,6 +24,7 @@ class ProductFactory extends Factory
             'sold_quantity' => $this->faker->numberBetween(0, 100),
             'stock_quantity' => $this->faker->numberBetween(0, 1000),
             'category_id' => Category::inRandomOrder()->first()->id,
+            'deleted' => false
         ];
     }
 }

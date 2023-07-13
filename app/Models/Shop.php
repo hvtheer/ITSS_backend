@@ -16,6 +16,8 @@ class Shop extends Model
         'address',
         'phone_number',
         'shop_logo',
+        'deleted',
+        'verified'
     ];
 
     public function user()

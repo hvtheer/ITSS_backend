@@ -5,25 +5,30 @@ namespace App\Http\Controllers\API;
 use App\Models\Role;
 use App\Models\Shop;
 use App\Models\User;
+use App\Http\Helpers;
 use App\Models\Customer;
 use App\Models\RoleUser;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Validator;
 
 class UserController extends Controller
 {
     public function index(Request $request)
     {
-        // Get the current page from the request, default to 1
+        // Check if the authenticated user is an admin
+        if (!Helpers::isAdmin()) {
+            return response()->json(['error' => 'Unauthorized'], 401);
+        }
+    
         $page = $request->input('page', 1);
-        // Get the perPage value from the request, default to 15
-        $perPage = $request->input('perPage', 15);
+        $limit = $request->input('limit', 15);
     
         try {
             $totalUsers = User::count();
     
-            $users = User::paginate($perPage, ['*'], 'page', $page);
+            $users = User::paginate($limit, ['*'], 'page', $page);
     
             if ($users->isEmpty()) {
                 return response()->json(['success' => false, 'message' => 'No users found']);
@@ -31,119 +36,95 @@ class UserController extends Controller
     
             return response()->json([
                 'success' => true,
-                'data' => $users->makeHidden(['created_at', 'updated_at']),
-                'totalUsers' => $totalUsers,
-                'perPage' => $perPage, // Include perPage value in the response
+                'data' => $users->makeHidden(['deleted', 'created_at', 'updated_at', 'email_verified_at']),
+                'totalUsers' => $totalUsers
             ]);
         } catch (\Exception $e) {
             return response()->json(['success' => false, 'message' => $e->getMessage()]);
         }
     }
-
-    public function store(Request $request)
-    {
-        try {
-            $authenticatedUser = Auth::user();
-
-            if ($authenticatedUser->roleUser->role_id !== Role::ROLE_ADMIN) {
-                throw new \Exception('You are not authorized to create a user.');
-            }
-
-            $validatedData = $request->validate([
-                'username' => 'required|unique:users',
-                'email' => 'required|email|unique:users',
-                'password' => 'required',
-                'status' => 'required|in:pending,approved,rejected',
-                'role_id' => 'required|exists:roles,id',
-            ]);
-
-            $user = User::create($validatedData);
-            $roleUser = new RoleUser([
-                'role_id' => $validatedData['role_id'],
-                'status' => $validatedData['status'],
-            ]);
-            $user->roleUser()->save($roleUser);
-            
-            if ($user->roleUser->role_id === Role::ROLE_CUSTOMER) {
-                $customer = Customer::create([
-                    'user_id' => $user->id,
-                ]);
-            }
-
-            if ($user->roleUser->role_id === Role::ROLE_SELLER) {
-                $shop = Shop::create([
-                    'user_id' => $user->id,
-                ]);
-            }
-
-            return response()->json(['success' => true, 'data' => $user], 201);
-        } catch (\Exception $e) {
-            return response()->json(['success' => false, 'message' => $e->getMessage()]);
-        }
-    }
-
+    
+    
     public function show(User $user)
     {
         try {
-            $userWithRole = $user->load('roleUser.role');
-
-            return response()->json(['success' => true, 'data' => $userWithRole]);
+            // Check if the authenticated user is an admin
+            if (!Helpers::isAdmin()) {
+                return response()->json(['error' => 'Unauthorized'], 401);
+            }
+            
+            $data = $user->makeHidden(['email_verified_at', 'created_at', 'updated_at']);
+    
+            $roleUser = $user->roleUser->makeHidden(['user_id', 'deleted', 'created_at', 'updated_at']);
+            if ($roleUser) {
+                if ($user->shop) {
+                    $userShop = $user->shop->makeHidden(['user_id', 'deleted', 'created_at', 'updated_at']);
+                    $data['shop'] = $userShop;
+                } elseif ($user->customer) {
+                    $userCustomer = $user->customer->makeHidden(['user_id', 'deleted', 'created_at', 'updated_at']);
+                    $data['customer'] = $userCustomer;
+                }
+            }
+    
+            return response()->json([
+                'success' => true,
+                'data' => $data
+            ]);
         } catch (\Exception $e) {
             return response()->json(['success' => false, 'message' => $e->getMessage()]);
         }
     }
-
-    public function update(Request $request, User $user)
+    
+    public function update(Request $request, $id)
     {
         try {
-            $authenticatedUser = Auth::user();
-
-            if ($authenticatedUser->roleUser->role_id !== Role::ROLE_ADMIN && $authenticatedUser->id !== $user->id) {
-                throw new \Exception('You are not authorized to update this user.');
+            $user = User::findOrFail($id);
+    
+            // If neither an admin nor the owner, return unauthorized error
+            if (!Helpers::isAdmin() && !Helpers::isOwner($id)) {
+                return response()->json(['error' => 'Unauthorized'], 401);
             }
 
             $validatedData = $request->validate([
                 'username' => 'required|unique:users,username,' . $user->id,
                 'email' => 'required|email|unique:users,email,' . $user->id,
-                'password' => 'required',
-                'status' => 'sometimes|required|in:pending,approved,rejected',
-                'role_id' => 'sometimes|required|exists:roles,id',
+                'password' => 'required|string',
+                'deleted' => 'required|integer'
             ]);
-
-            $user->update($validatedData);
-
-            if (isset($validatedData['role_id']) || isset($validatedData['status'])) {
-                $roleUser = $user->roleUser;
-
-                if (!$roleUser) {
-                    $roleUser = new RoleUser();
-                    $user->roleUser()->save($roleUser);
+            
+            $user->username = $validatedData['username'];
+            $user->email = $validatedData['email'];
+            
+            if ($validatedData['deleted']) {
+                if ($user->customer) {
+                    $user->customer->deleted = true;
+                    $user->customer->save();
+                } elseif ($user->shop) {
+                    $user->shop->deleted = true;
+                    $user->shop->save();
                 }
-
-                if (isset($validatedData['role_id'])) {
-                    $roleUser->role_id = $validatedData['role_id'];
-                }
-
-                if (isset($validatedData['status'])) {
-                    $roleUser->status = $validatedData['status'];
-                }
-
-                $roleUser->save();
+                $user->deleted = $validatedData['deleted'];
             }
-
-            return response()->json(['success' => true, 'data' => $user]);
+            
+            if (!empty($validatedData['password'])) {
+                $user->password = bcrypt($validatedData['password']);
+            }
+            
+            $user->save();
+                      
+    
+            return response()->json(['success' => true, 'data' => $user, 'message' => 'User details successfully updated']);
         } catch (\Exception $e) {
             return response()->json(['success' => false, 'message' => $e->getMessage()]);
         }
     }
-
+    
     public function destroy(User $user)
     {
         try {
-            $authenticatedUser = Auth::user();
-
-            if ($authenticatedUser->roleUser->role_id !== Role::ROLE_ADMIN && $authenticatedUser->id !== $user->id) {
-                throw new \Exception('You are not authorized to delete this user.');
+            // Check if the authenticated user is an admin
+            if (!Helpers::isAdmin()) {
+                return response()->json(['error' => 'Unauthorized'], 401);
             }
 
             $user->delete();
@@ -159,14 +140,18 @@ class UserController extends Controller
         try {
             $user = Auth::user();
 
-            if($user) {
-                if($user->roleUser->role_id === Role::ROLE_SELLER) {
-                    $data = $user->load('shop');
-                } elseif($user->roleUser->role_id === Role::ROLE_CUSTOMER) {
-                    $data = $user->load('customer');
-                } else {
-                    $data = $user;
+            if ($user) {
+                $data = $user->makeHidden(['email_verified_at','deleted','created_at','updated_at']);
+                $roleUser = $user->roleUser->makeHidden(['user_id','deleted','created_at','updated_at']);
+
+                if ($roleUser) {
+                    if (Helpers::isShop()) {
+                        $userShop = $user->shop->makeHidden(['user_id','deleted','created_at','updated_at']);
+                    } elseif (Helpers::isCustomer()) {
+                        $userCustomer = $user->customer->makeHidden(['user_id','deleted','created_at','updated_at']);
+                    }
                 }
+
                 return response()->json(['success' => true, 'data' => $data]);
             }
         } catch (\Exception $e) {

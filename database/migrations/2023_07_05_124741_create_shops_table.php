@@ -16,7 +16,8 @@ class CreateShopsTable extends Migration
             $table->string('address');
             $table->string('phone_number');
             $table->string('shop_logo');
-            $table->enum('status', ['pending', 'accepted', 'not_accepted']);
+            $table->boolean('deleted')->default(false);
+            $table->boolean('verified')->default(false);
             $table->timestamps();
 
             $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');

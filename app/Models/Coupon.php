@@ -17,6 +17,7 @@ class Coupon extends Model
         'created_by',
         'start_date',
         'end_date',
+        'deleted'
     ];
 
     public function creator()

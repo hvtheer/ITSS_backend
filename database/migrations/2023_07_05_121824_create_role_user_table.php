@@ -12,6 +12,7 @@ class CreateRoleUserTable extends Migration
             $table->id();
             $table->unsignedBigInteger('user_id');
             $table->unsignedBigInteger('role_id');
+            $table->boolean('deleted')->default(false);
             $table->timestamps();
 
             $table->unique(['user_id', 'role_id']);

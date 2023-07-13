@@ -14,6 +14,7 @@ class Customer extends Model
         'name',
         'phone_number',
         'address',
+        'deleted'
     ];
 
     public function user()
