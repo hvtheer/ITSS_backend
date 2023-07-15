@@ -20,6 +20,8 @@ use Illuminate\Support\Facades\Route;
 Route::post('/v1/register', 'App\Http\Controllers\Auth\RegisterController@register');
 Route::post('/v1/login', 'App\Http\Controllers\Auth\LoginController@login');
 
+Route::post('create-post', 'App\Http\Controllers\PaymentController@createPost');
+
 Route::prefix('v1')->group(function () {
     Route::get('/products', 'App\Http\Controllers\API\ProductController@index');
     Route::get('/products/best-sellers', 'App\Http\Controllers\API\ProductController@getBestSellingProducts');
