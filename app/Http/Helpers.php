@@ -10,18 +10,31 @@ class Helpers
 {
     public static function isAdmin()
     {
-        return Auth::user()->roleUser->role_id === Role::ROLE_ADMIN;
+        $user = Auth::user();
+        if ($user) {
+            return $user->roleUser->role_id === Role::ROLE_ADMIN;
+        }
+        return false;
     }
-
+    
     public static function isCustomer()
     {
-        return Auth::user()->roleUser->role_id === Role::ROLE_CUSTOMER;
+        $user = Auth::user();
+        if ($user && $user->roleUser) {
+            return $user->roleUser->role_id === Role::ROLE_CUSTOMER;
+        }
+        return false;
     }
-
+    
     public static function isShop()
     {
-        return Auth::user()->roleUser->role_id === Role::ROLE_SELLER;
+        $user = Auth::user();
+        if ($user && $user->roleUser) {
+            return $user->roleUser->role_id === Role::ROLE_SELLER;
+        }
+        return false;
     }
+    
 
     public static function isOwner($userId)
     {

@@ -57,10 +57,10 @@ class UserController extends Controller
     
             $roleUser = $user->roleUser->makeHidden(['user_id', 'deleted', 'created_at', 'updated_at']);
             if ($roleUser) {
-                if ($user->shop) {
+                if ($roleUser->role_id === Role::ROLE_SELLER) {
                     $userShop = $user->shop->makeHidden(['user_id', 'deleted', 'created_at', 'updated_at']);
                     $data['shop'] = $userShop;
-                } elseif ($user->customer) {
+                } elseif ($roleUser->role_id === Role::ROLE_CUSTOMER) {
                     $userCustomer = $user->customer->makeHidden(['user_id', 'deleted', 'created_at', 'updated_at']);
                     $data['customer'] = $userCustomer;
                 }

@@ -95,15 +95,13 @@ class CustomerController extends Controller
     {
         try {
             // Check if the authenticated user is an admin or the owner
-            if (!Helpers::isAdmin() && !Helpers::isOwner($customer->user_id)) {
+            if (!Helpers::isAdmin() && !Helpers::isCustomer()) {
                 return response()->json(['error' => 'Unauthorized'], 401);
             }
 
-            // If the authenticated user is a customer or shop, check if the record is deleted
-            if (Helpers::isCustomer() || Helpers::isShop()) {
-                if (Helpers::isDeletedUser($customer->user->id)) {
-                    return response()->json(['error' => 'User account has been deleted'], 401);
-                }
+            // If the authenticated user is a shop, check if they own the shop being updated
+            if (Helpers::isCustomer() && !Helpers::isOwner($customer->user_id)) {
+                return response()->json(['error' => 'Unauthorized'], 401);
             }
 
             $validatedData = $request->validate([

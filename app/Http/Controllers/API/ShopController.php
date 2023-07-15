@@ -19,12 +19,14 @@ class ShopController extends Controller
             $page = $request->input('page', 1);
             // Get the limit value from the request, default to 15
             $limit = $request->input('limit', 15);
-            
+    
             // Check if the authenticated user is an admin
-            if (!Helpers::isAdmin()) {
-                // Retrieve only non-deleted shops
-                $totalShops = Shop::where('deleted', false)->count();
-                $shops = Shop::where('deleted', false)->paginate($limit, ['*'], 'page', $page);
+            $isAdmin = Helpers::isAdmin();
+    
+            if (!$isAdmin) {
+                // Retrieve non-deleted and verified shops
+                $totalShops = Shop::where('deleted', false)->where('verified', true)->count();
+                $shops = Shop::where('deleted', false)->where('verified', true)->paginate($limit, ['*'], 'page', $page);
             } else {
                 // Retrieve all shops (including deleted)
                 $totalShops = Shop::count();
@@ -46,30 +48,30 @@ class ShopController extends Controller
     }
     
 
-    public function store(Request $request)
-    {
-        try {
-            // Check if the authenticated user is an admin
-            if (!Helpers::isAdmin()) {
-                return response()->json(['error' => 'Unauthorized'], 401);
-            }
+    // public function store(Request $request)
+    // {
+    //     try {
+    //         // Check if the authenticated user is an admin
+    //         if (!Helpers::isAdmin()) {
+    //             return response()->json(['error' => 'Unauthorized'], 401);
+    //         }
 
-            $validatedData = $request->validate([
-                'user_id' => 'required|exists:users,id|unique:shops,user_id',
-                'shop_name' => 'required',
-                'description' => 'required',
-                'address' => 'required',
-                'phone_number' => 'required',
-                'verified' => 'required|boolean',
-                'shop_logo' => 'nullable',
-            ]);
+    //         $validatedData = $request->validate([
+    //             'user_id' => 'required|exists:users,id|unique:shops,user_id',
+    //             'shop_name' => 'required',
+    //             'description' => 'required',
+    //             'address' => 'required',
+    //             'phone_number' => 'required',
+    //             'verified' => 'required|boolean',
+    //             'shop_logo' => 'nullable',
+    //         ]);
 
-            $shop = Shop::create($validatedData);
-            return response()->json(['success' => true, 'data' => $shop], 201);
-        } catch (\Exception $e) {
-            return response()->json(['success' => false, 'message' => $e->getMessage()]);
-        }
-    }
+    //         $shop = Shop::create($validatedData);
+    //         return response()->json(['success' => true, 'data' => $shop], 201);
+    //     } catch (\Exception $e) {
+    //         return response()->json(['success' => false, 'message' => $e->getMessage()]);
+    //     }
+    // }
 
     public function show(Shop $shop)
     {
@@ -92,64 +94,69 @@ class ShopController extends Controller
     public function update(Request $request, Shop $shop)
     {
         try {
-            $authenticatedUser = Auth::user();
-
-            if (
-                $authenticatedUser->roleUser->role_id !== Role::ROLE_ADMIN &&
-                $authenticatedUser->id !== $shop->user_id
-            ) {
-                throw new \Exception('You are not authorized to update this shop.');
+            // Check if the authenticated user is an admin or the owner
+            if (!Helpers::isAdmin() && !Helpers::isShop()) {
+                return response()->json(['error' => 'Unauthorized'], 401);
             }
-
+    
+            // If the authenticated user is a shop, check if they own the shop being updated
+            if (Helpers::isShop() && !Helpers::isOwner($shop->user_id)) {
+                return response()->json(['error' => 'Unauthorized'], 401);
+            }
+    
             $validatedData = $request->validate([
-                'user_id' => 'nullable|exists:users,id|unique:shops,user_id,' . $shop->id,
-                'shop_name' => 'required',
-                'description' => 'required',
-                'address' => 'required',
-                'phone_number' => 'required',
-                'is_verified' => 'required|in:PENDING,ACCEPTED,NOT_ACCEPTED',
-                'shop_logo' => 'nullable',
+                'shop_name' => 'required|string',
+                'description' => 'required|string',
+                'address' => 'required|string',
+                'phone_number' => 'required|string',
+                'verified' => 'required|boolean',
+                'shop_logo' => 'nullable|string',
+                'deleted' => 'required|boolean',
             ]);
-
+    
+            // Remove the 'user_id' field from the validated data
+            unset($validatedData['user_id']);
+    
             $shop->update($validatedData);
             return response()->json(['success' => true, 'data' => $shop]);
         } catch (\Exception $e) {
             return response()->json(['success' => false, 'message' => $e->getMessage()]);
         }
     }
+    
 
     public function destroy(Shop $shop)
     {
         try {
-            $authenticatedUser = Auth::user();
-
-            if (
-                $authenticatedUser->roleUser->role_id !== Role::ROLE_ADMIN &&
-                $authenticatedUser->id !== $shop->user_id
-            ) {
-                throw new \Exception('You are not authorized to delete this shop.');
+            // Check if the authenticated user is an admin or the owner
+            if (!Helpers::isAdmin()) {
+                return response()->json(['error' => 'Unauthorized'], 401);
             }
-
+    
             $shop->delete();
-            return response()->json(['success' => true], 204);
+            return response()->json(['success' => true, 'data' => 'Shop deleted successfully!']);
         } catch (\Exception $e) {
             return response()->json(['success' => false, 'message' => $e->getMessage()]);
         }
     }
+    
 
     public function topShopsBySoldQuantity()
     {
         try {
             $topShops = Shop::select('shops.id', 'shops.shop_name', 'shops.address', 'shops.shop_logo', 'shops.phone_number')
                 ->join('products', 'shops.id', '=', 'products.shop_id')
+                ->where('shops.deleted', false)
+                ->where('shops.verified', true)
                 ->groupBy('shops.id', 'shops.shop_name', 'shops.address', 'shops.shop_logo', 'shops.phone_number')
                 ->orderByRaw('SUM(products.sold_quantity) DESC')
                 ->limit(6)
                 ->get();
-
+    
             return response()->json(['success' => true, 'data' => $topShops]);
         } catch (\Exception $e) {
             return response()->json(['success' => false, 'message' => $e->getMessage()]);
         }
     }
+    
 }
